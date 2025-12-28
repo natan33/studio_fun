@@ -24,6 +24,3 @@ def setup_logger():
     # Evita adicionar múltiplos filtros se a função for chamada duas vezes
     if not any(isinstance(f, TraceIdFilter) for f in logger.filters):
         logger.add_filter(TraceIdFilter())
-
-# Chamada inicial
-setup_logger()
