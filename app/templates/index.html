@@ -1,0 +1,22 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="p-5 mb-4 bg-white border rounded-3 shadow-sm">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold">Bem-vindo ao Studio Fun</h1>
+        <p class="col-md-8 fs-4">Se você está vendo isso, o sistema de rotas básicas e templates está funcionando corretamente.</p>
+        
+        {% if current_user.is_authenticated %}
+            <div class="alert alert-success">
+                <strong>Status:</strong> Você está logado como <strong>{{ current_user.email }}</strong>.
+                <br>As sessões estão sendo armazenadas no seu <strong>Redis</strong>.
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <strong>Status:</strong> Você não está logado. 
+                <a href="{{ url_for('auth.login') }}">Clique aqui para entrar</a>.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
