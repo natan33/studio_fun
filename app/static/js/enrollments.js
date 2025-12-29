@@ -73,29 +73,64 @@ function filterEnrollments() {
     });
 }
 
-// 3. Exclusão (Cancelamento) de Matrícula
-function deleteEnrollment(id) {
+function lockEnrollment(id) {
+    // Captura o token do input que adicionamos acima
+    const csrfToken = document.getElementById('csrf_token').value;
+
     Swal.fire({
-        title: 'Cancelar Matrícula?',
-        text: "O aluno será removido desta turma definitivamente.",
-        icon: 'warning',
+        title: 'Trancar Matrícula?',
+        text: "O aluno constará como inativo nos indicadores.",
+        icon: 'info',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
+        confirmButtonColor: '#f1c40f',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sim, cancelar!',
+        confirmButtonText: 'Sim, trancar!',
         cancelButtonText: 'Voltar'
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {
-                const response = await fetch(`/api/academy/enroll/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/api/enrollment/enroll/${id}/lock`, { 
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        // ADICIONE ESTA LINHA:
+                        'X-CSRFToken': csrfToken 
+                    }
+                });
+                
                 const res = await response.json();
                 if (res.code === 'SUCCESS') {
-                    Swal.fire('Cancelada!', 'A matrícula foi removida.', 'success')
+                    Swal.fire('Trancada!', 'O status foi atualizado.', 'success')
                         .then(() => window.location.reload());
+                } else {
+                    Swal.fire('Erro', res.message, 'error');
                 }
             } catch (error) {
-                Swal.fire('Erro', 'Não foi possível cancelar a matrícula.', 'error');
+                Swal.fire('Erro', 'Erro de conexão.', 'error');
             }
         }
     });
+}
+
+// app/static/js/enrollments.js
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+});
+
+async function loadDashboardStats() {
+    try {
+        const response = await fetch('/api/enrollmente-dash');
+        const result = await response.json();
+
+        if (result.code === 'SUCCESS') {
+            const stats = result.data; // Agora o data já são os números
+            document.getElementById('card-total').innerText = stats.total;
+            document.getElementById('card-ativos').innerText = stats.ativos;
+            document.getElementById('card-trancados').innerText = stats.trancados;
+            document.getElementById('card-freq').innerText = stats.freq_media;
+        }
+    } catch (error) {
+        console.error("Erro ao carregar cards:", error);
+    }
 }

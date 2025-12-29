@@ -1,43 +1,177 @@
-{% extends "layout/base.html" %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Studio Fun</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-dark: #0d4d3f;
+            --accent-neon: #76ff03;
+            --soft-white: #f8f9fa;
+        }
 
-{% block title %}Login - Studio Fun{% endblock %}
+        body {
+            background: linear-gradient(rgba(13, 77, 63, 0.85), rgba(13, 77, 63, 0.95)), 
+                        url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h3 class="card-title text-center mb-4">Login</h3>
-                <form method="POST" action="">
-                    {{ form.hidden_tag() }}
+        .login-wrapper {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+        }
 
-                    <div class="mb-3">
-                        {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control", placeholder="seu@email.com") }}
-                        {% for error in form.email.errors %}
-                            <span class="text-danger small">{{ error }}</span>
-                        {% endfor %}
-                    </div>
+        .logo-box {
+            text-align: center;
+            margin-bottom: -60px; /* Sobrepõe levemente o card */
+            position: relative;
+            z-index: 10;
+        }
 
-                    <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
-                        {% for error in form.password.errors %}
-                            <span class="text-danger small">{{ error }}</span>
-                        {% endfor %}
-                    </div>
+        .logo-box img {
+            width: 130px;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            background-color: white;
+        }
 
-                    <div class="mb-3 form-check">
-                        {{ form.remember_me(class="form-check-input") }}
-                        {{ form.remember_me.label(class="form-check-label") }}
-                    </div>
+        .login-card {
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 1);
+            padding: 70px 40px 40px 40px; /* Padding superior maior para compensar a logo */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
 
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
-            </div>
+        .form-label {
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: #6c757d;
+        }
+
+        .input-group {
+            margin-bottom: 25px; /* Mais espaço entre blocos de input */
+        }
+
+        .form-control {
+            padding: 12px 15px;
+            border-radius: 10px !important;
+            border: 1px solid #dee2e6;
+            background-color: #fcfcfc;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 0 0.25rem rgba(13, 77, 63, 0.1);
+            background-color: white;
+        }
+
+        .input-group-text {
+            border-radius: 10px !important;
+            background-color: transparent;
+            color: var(--primary-dark);
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-login {
+            background-color: var(--primary-dark);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: #08332a;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            color: var(--accent-neon);
+        }
+
+        .footer-text {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            margin-top: 25px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+    <div class="logo-box">
+        <img src="{{ url_for('static', filename='img/logo_fun.jpg') }}" alt="Studio Fun">
+    </div>
+
+    <div class="card login-card">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold" style="color: var(--primary-dark);">Bem-vindo!</h2>
+            <p class="text-muted small">Acesse o painel do Studio Fun</p>
         </div>
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">E-MAIL DO USUÁRIO</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                    {{ form.email(class="form-control", placeholder="exemplo@fun.com") }}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">SENHA DE ACESSO</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    {{ form.password(class="form-control", placeholder="••••••••") }}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    {{ form.remember_me(class="form-check-input") }}
+                    <label class="form-check-label small text-muted" for="remember_me">Manter conectado</label>
+                </div>
+                <a href="#" class="small text-decoration-none fw-bold" style="color: var(--primary-dark);">Esqueci a senha</a>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-login">
+                    Entrar no Sistema <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="footer-text">
+        <p><strong>Studio Fun</strong> - Movimento Cura!<br>
+        <small>© 2025 Gleide Vallentino</small></p>
     </div>
 </div>
-{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
