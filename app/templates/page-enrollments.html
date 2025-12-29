@@ -1,59 +1,181 @@
 {% extends 'layout/base.html' %}
 
 {% block title %}Matrículas - Studio Fun{% endblock %}
-{% block page_title %}Matricular Aluno em Turma{% endblock %}
+{% block page_title %}Gestão de Matrículas{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <h5 class="card-title mb-4 fw-bold text-primary">Nova Matrícula</h5>
-                <form id="enrollmentForm">
-                    {{ form.csrf_token }}
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Aluno</label>
-                        {{ form.student_id(class="form-select select2") }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Turma/Horário</label>
-                        {{ form.schedule_id(class="form-select") }}
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm">
-                        <i class="fas fa-signature me-2"></i>Efetuar Matrícula
-                    </button>
-                </form>
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-primary text-white h-100">
+            <div class="card-body p-3 d-flex align-items-center">
+                <div class="bg-white bg-opacity-25 rounded p-3">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
+                <div class="ms-3">
+                    <small class="d-block opacity-75">Total Matrículas</small>
+                    <h4 class="mb-0 fw-bold">{{ enrollments|length }}</h4>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="px-4">Aluno</th>
-                            <th>Atividade</th>
-                            <th>Dia/Hora</th>
-                            <th class="text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for en in enrollments %}
-                        <tr>
-                            <td class="px-4 fw-bold">{{ en.student.full_name }}</td>
-                            <td><span class="badge bg-info text-dark">{{ en.schedule.activity_ref.name }}</span></td>
-                            <td>{{ en.schedule.day_of_week }} às {{ en.schedule.start_time.strftime('%H:%M') }}</td>
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-user-minus"></i></button>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="4" class="text-center py-5 text-muted">Nenhuma matrícula ativa.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-success text-white h-100">
+            <div class="card-body p-3 d-flex align-items-center">
+                <div class="bg-white bg-opacity-25 rounded p-3">
+                    <i class="fas fa-check-circle fa-lg"></i>
+                </div>
+                <div class="ms-3">
+                    <small class="d-block opacity-75">Status Ativo</small>
+                    <h4 class="mb-0 fw-bold">
+                        {{ enrollments|selectattr('status', 'equalto', 'Ativo')|list|length }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-warning text-dark h-100">
+            <div class="card-body p-3 d-flex align-items-center">
+                <div class="bg-white bg-opacity-25 rounded p-3">
+                    <i class="fas fa-pause-circle fa-lg"></i>
+                </div>
+                <div class="ms-3">
+                    <small class="d-block opacity-75">Trancados</small>
+                    <h4 class="mb-0 fw-bold">
+                        {{ enrollments|selectattr('status', 'equalto', 'Trancado')|list|length }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-info text-dark h-100">
+            <div class="card-body p-3 d-flex align-items-center">
+                <div class="bg-white bg-opacity-25 rounded p-3">
+                    <i class="fas fa-star fa-lg"></i>
+                </div>
+                <div class="ms-3">
+                    <small class="d-block opacity-75">Frequência Média</small>
+                    <h4 class="mb-0 fw-bold">85%</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i
+                            class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="filterStudent" class="form-control border-start-0"
+                        placeholder="Buscar por aluno..." onkeyup="filterEnrollments()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="filterActivity" class="form-select" onchange="filterEnrollments()">
+                    <option value="all">Todas as Atividades</option>
+                </select>
+            </div>
+            <div class="col-md-5 text-md-end">
+                <button class="btn btn-primary px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEnrollment">
+                    <i class="fas fa-plus me-2"></i>Nova Matrícula
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="enrollmentTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="px-4">Aluno</th>
+                        <th>Atividade</th>
+                        <th>Dia/Hora</th>
+                        <th>Status</th>
+                        <th class="text-end px-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="enrollmentTableBody">
+                    {% for en in enrollments %}
+                    <tr data-student="{{ en.student.full_name|lower }}"
+                        data-activity="{{ en.schedule.activity_ref.name|lower }}">
+                        <td class="px-4">
+                            <div class="fw-bold">{{ en.student.full_name }}</div>
+                            <small class="text-muted">{{ en.student.cpf or 'Sem CPF' }}</small>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill bg-soft-primary text-primary px-3">
+                                {{ en.schedule.activity_ref.name }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="small fw-bold text-dark">{{ en.schedule.day_of_week }}</div>
+                            <div class="small text-muted">{{ en.schedule.start_time.strftime('%H:%M') }}</div>
+                        </td>
+                        <td>
+                            {% if en.status == 'Ativo' %}
+                            <span
+                                class="badge bg-success-subtle text-success border border-success-subtle px-3">Ativo</span>
+                            {% elif en.status == 'Trancado' %}
+                            <span
+                                class="badge bg-warning-subtle text-warning border border-warning-subtle px-3">Trancado</span>
+                            {% else %}
+                            <span
+                                class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3">{{
+                                en.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end px-4">
+                            <button class="btn btn-sm btn-light text-danger border"
+                                onclick="deleteEnrollment('{{ en.id }}')" title="Cancelar Matrícula">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">Nenhuma matrícula encontrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEnrollment" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-signature me-2"></i>Nova Matrícula</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="enrollmentForm">
+                    {{ form.csrf_token }}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Selecionar Aluno</label>
+                        {{ form.student_id(class="form-select select2-modal") }}
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Turma / Horário</label>
+                        {{ form.schedule_id(class="form-select") }}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary py-3 fw-bold shadow-sm">
+                            Confirmar Matrícula
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

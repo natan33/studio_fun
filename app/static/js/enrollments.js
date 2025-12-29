@@ -1,25 +1,20 @@
-document.addEventListener('DOMContentLoaded', () => {
+
+
+document.addEventListener('DOMContentLoaded', function() {
     const enrollmentForm = document.getElementById('enrollmentForm');
 
+    // 1. Envio do Formulário via AJAX
     if (enrollmentForm) {
         enrollmentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            Swal.fire({
-                title: 'Processando Matrícula...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-
             const formData = new FormData(enrollmentForm);
 
             try {
-                const response = await fetch(window.location.href, {
+                const response = await fetch(window.location.href, { // Ajuste sua rota se necessário
                     method: 'POST',
                     body: formData,
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
-
                 const result = await response.json();
 
                 if (response.ok) { // Verifica se o status é 200-299
@@ -56,3 +51,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// 2. Filtro em Tempo Real
+function filterEnrollments() {
+    const studentQuery = document.getElementById('filterStudent').value.toLowerCase();
+    const activityQuery = document.getElementById('filterActivity').value.toLowerCase();
+    const rows = document.querySelectorAll('#enrollmentTableBody tr');
+
+    rows.forEach(row => {
+        const studentName = row.getAttribute('data-student') || "";
+        const activityName = row.getAttribute('data-activity') || "";
+
+        const matchesStudent = studentName.includes(studentQuery);
+        const matchesActivity = activityQuery === 'all' || activityName === activityQuery;
+
+        if (matchesStudent && matchesActivity) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// 3. Exclusão (Cancelamento) de Matrícula
+function deleteEnrollment(id) {
+    Swal.fire({
+        title: 'Cancelar Matrícula?',
+        text: "O aluno será removido desta turma definitivamente.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, cancelar!',
+        cancelButtonText: 'Voltar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/api/academy/enroll/${id}`, { method: 'DELETE' });
+                const res = await response.json();
+                if (res.code === 'SUCCESS') {
+                    Swal.fire('Cancelada!', 'A matrícula foi removida.', 'success')
+                        .then(() => window.location.reload());
+                }
+            } catch (error) {
+                Swal.fire('Erro', 'Não foi possível cancelar a matrícula.', 'error');
+            }
+        }
+    });
+}

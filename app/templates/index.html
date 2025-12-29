@@ -1,22 +1,117 @@
 {% extends "layout/base.html" %}
 
+{% block page_title %}Dashboard Operacional{% endblock %}
+
 {% block content %}
-<div class="p-5 mb-4 bg-white border rounded-3 shadow-sm">
-    <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold">Bem-vindo ao Studio Fun</h1>
-        <p class="col-md-8 fs-4">Se você está vendo isso, o sistema de rotas básicas e templates está funcionando corretamente.</p>
-        
-        {% if current_user.is_authenticated %}
-            <div class="alert alert-success">
-                <strong>Status:</strong> Você está logado como <strong>{{ current_user.email }}</strong>.
-                <br>As sessões estão sendo armazenadas no seu <strong>Redis</strong>.
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Bem-vindo, {{ current_user.username }}!</h1>
+        <p class="text-muted">Aqui está o resumo do Studio Fun hoje.</p>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-start border-primary border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" style="font-size: 0.75rem;">Total de Alunos</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300" style="color: #dddfeb;"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-        {% else %}
-            <div class="alert alert-warning">
-                <strong>Status:</strong> Você não está logado. 
-                <a href="{{ url_for('auth.login') }}">Clique aqui para entrar</a>.
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="font-size: 0.75rem;">Matrículas Ativas</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_enrollments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-signature fa-2x text-gray-300" style="color: #dddfeb;"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-        {% endif %}
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-start border-info border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1" style="font-size: 0.75rem;">Turmas Configuradas</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_schedules }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300" style="color: #dddfeb;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar me-2"></i>Ocupação de Turmas (Capacidade Máxima: 15)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Atividade / Dia</th>
+                                    <th>Horário</th>
+                                    <th>Status de Lotação</th>
+                                    <th class="text-center pe-4">Alunos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in data.occupancy %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">{{ item.label }}</div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark">{{ item.time }}</span></td>
+                                    <td style="min-width: 250px;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 10px; border-radius: 5px;">
+                                                <div class="progress-bar {% if item.pct >= 90 %}bg-danger{% elif item.pct >= 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ item.pct }}%;" 
+                                                     aria-valuenow="{{ item.pct }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <span class="ms-3 small fw-bold">{{ item.pct }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <span class="fw-bold">{{ item.current }}</span> <span class="text-muted">/ {{ item.max }}</span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">Nenhuma turma cadastrada no momento.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

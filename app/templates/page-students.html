@@ -4,58 +4,84 @@
 {% block page_title %}Gestão de Alunos{% endblock %}
 
 {% block content %}
-<div class="row g-4">
+<div class="row mb-4 g-3">
     <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <h5 class="card-title mb-4 fw-bold text-primary">Novo Cadastro</h5>
-                <form id="studentForm">
-                    {{ form.csrf_token }}
-                    
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Nome Completo</label>
-                        {{ form.full_name(class="form-control", placeholder="Ex: João Silva") }}
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-muted">CPF</label>
-                            {{ form.cpf(class="form-control", placeholder="000.000.000-00") }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-muted">Nascimento</label>
-                            {{ form.birth_date(class="form-control", type="date") }}
-                        </div>
-                    </div>
-
-                    <hr class="text-muted">
-                    <h6 class="fw-bold mb-3"><i class="fas fa-heartbeat me-2 text-danger"></i>Saúde</h6>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-muted">Tipo Sanguíneo</label>
-                            {{ form.blood_type(class="form-select") }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-muted">Peso (kg)</label>
-                            {{ form.weight(class="form-control", placeholder="0.0") }}
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Obs. Médicas</label>
-                        {{ form.medical_notes(class="form-control", rows="2", placeholder="Alergias, lesões...") }}
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm mt-2">
-                        <i class="fas fa-user-plus me-2"></i>Cadastrar Aluno
-                    </button>
-                </form>
+        <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small fw-bold text-uppercase mb-1">Total de Alunos</h6>
+                    <h2 class="fw-bold mb-0 text-dark">{{ students|length }}</h2>
+                </div>
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small fw-bold text-uppercase mb-1">Matrículas Ativas</h6>
+                    <h2 class="fw-bold mb-0 text-success">
+                        {{ students|selectattr('is_active', 'equalto', True)|list|length }}
+                    </h2>
+                </div>
+                <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                    <i class="fas fa-user-check fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 border-start border-danger border-4 h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small fw-bold text-uppercase mb-1">Matrículas Inativas</h6>
+                    <h2 class="fw-bold mb-0 text-danger">
+                        {{ students|selectattr('is_active', 'equalto', False)|list|length }}
+                    </h2>
+                </div>
+                <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                    <i class="fas fa-user-times fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <div class="col-md-8">
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <div class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="filterName" class="form-control border-start-0"
+                        placeholder="Buscar por nome, CPF ou e-mail...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="filterStatus" class="form-select">
+                    <option value="all">Todos os Status</option>
+                    <option value="active">Apenas Ativos</option>
+                    <option value="inactive">Apenas Inativos</option>
+                </select>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="btn btn-primary shadow-sm w-100 w-md-auto py-2" data-bs-toggle="modal"
+                    data-bs-target="#modalCadastro">
+                    <i class="fas fa-plus-circle me-2"></i>Novo Aluno
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-12">
         <div class="card shadow-sm border-0">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -63,7 +89,7 @@
                         <thead class="bg-light text-muted small fw-bold">
                             <tr>
                                 <th class="px-4 py-3">NOME</th>
-                                <th class="py-3">CPF</th>
+                                <th class="py-3">STATUS</th>
                                 <th class="py-3">NASCIMENTO</th>
                                 <th class="py-3 text-center">AÇÕES</th>
                             </tr>
@@ -72,14 +98,29 @@
                             {% for student in students %}
                             <tr>
                                 <td class="px-4 fw-bold text-dark">{{ student.full_name }}</td>
-                                <td>{{ student.cpf or 'N/A' }}</td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" {% if
+                                            student.is_active %}checked{% endif %}
+                                            onclick="handleStatusToggle('{{ student.id }}', '{{ student.full_name }}', this)">
+                                        <label class="form-check-label small text-muted">
+                                            {{ 'Ativo' if student.is_active else 'Inativo' }}
+                                        </label>
+                                    </div>
+                                </td>
                                 <td>{{ student.birth_date.strftime('%d/%m/%Y') if student.birth_date else '-' }}</td>
                                 <td class="text-center">
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-warning border-0" title="Editar">
+                                        <button class="btn btn-sm btn-outline-info border-0" title="Ver Detalhes"
+                                            onclick="loadStudentDetails('{{ student.id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning border-0" title="Editar"
+                                            onclick="editStudent('{{ student.id }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger border-0" title="Excluir">
+                                        <button class="btn btn-sm btn-outline-danger border-0" title="Excluir"
+                                            onclick="deleteStudent('{{ student.id }}', '{{ student.full_name }}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -100,8 +141,125 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalCadastroLabel">
+                    <i class="fas fa-user-plus me-2"></i>
+                    <span id="modalTitleText">Novo Cadastro de Aluno</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form id="studentForm">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="student_id" name="student_id">
+                    {{ form.csrf_token }}
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-primary fw-bold small text-uppercase mb-0">Dados Pessoais</h6>
+                            <hr class="mt-1">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-muted">Nome Completo</label>
+                            {{ form.full_name(class="form-control", placeholder="Ex: João Silva") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">CPF</label>
+                            {{ form.cpf(class="form-control", placeholder="000.000.000-00") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Nascimento</label>
+                            {{ form.birth_date(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">E-mail</label>
+                            {{ form.email(class="form-control", placeholder="joao@email.com") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Telefone</label>
+                            {{ form.phone(class="form-control", placeholder="(00) 00000-0000") }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="text-primary fw-bold small text-uppercase mb-0">Endereço</h6>
+                            <hr class="mt-1">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">CEP</label>
+                            {{ form.postal_code(class="form-control", placeholder="00000-000") }}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-muted">Cidade</label>
+                            {{ form.city(class="form-control") }}
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label small fw-bold text-muted">Logradouro</label>
+                            {{ form.address(class="form-control") }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">Nº</label>
+                            {{ form.address_number(class="form-control") }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="text-danger fw-bold small text-uppercase mb-0">Saúde e Emergência</h6>
+                            <hr class="mt-1">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Sangue</label>
+                            {{ form.blood_type(class="form-select") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Peso (kg)</label>
+                            {{ form.weight(class="form-control",placeholder="68,00" ,id="peso") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Altura (m)</label>
+                            {{ form.height(class="form-control", placeholder="1.75", id="altura") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Contato Emergência</label>
+                            {{ form.emergency_contact(class="form-control") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Tel. Emergência</label>
+                            {{ form.emergency_phone(class="form-control") }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted">Obs. Médicas</label>
+                            {{ form.medical_notes(class="form-control", rows="2") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-2"></i>Salvar Cadastro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Detalhes do Aluno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalhesConteudo">
+                </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='js/students.js') }}"></script>
+<script src="{{ url_for('static', filename='js/students.js') }}"></script>
 {% endblock %}

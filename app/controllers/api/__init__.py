@@ -4,4 +4,4 @@ from flask import Blueprint
 api = Blueprint('api', __name__)
 
 
-from . import ajax
+from . import student_api

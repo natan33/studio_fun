@@ -153,7 +153,7 @@ class Activity(db.Model):
     
     # Relacionamento para facilitar a busca de turmas de uma atividade
     schedules = db.relationship('ClassSchedule', backref='activity_ref', lazy=True)
-
+    
 
         # SENIOR TIP: onupdate garante que o Postgres/SQLAlchemy atualize a data 
     # automaticamente em cada modificação do registro.
