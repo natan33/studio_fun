@@ -40,7 +40,7 @@ class StudentService:
                 weight=self.form.weight.data,
                 medical_notes=self.form.medical_notes.data
             )
-            
+
             health_info.save()
 
             logger.info(f"Aluno {new_student.full_name} cadastrado com sucesso.")
@@ -57,10 +57,14 @@ class StudentService:
             logger.error(f"Erro inesperado ao criar aluno: {str(e)}")
             return ApiResponse.error(message="Ocorreu um erro interno no servidor.")
 
-    def list_all(self):
-        """Retorna todos os alunos ordenados por nome"""
+    def list_all(self, as_dict=False):
+        """Retorna todos os alunos. Se as_dict for True, retorna para JSON."""
         students = Student.query.order_by(Student.full_name).all()
-        return ApiResponse.success(data=[s.to_dict() for s in students]) # Exemplo se tiver to_dict
+        
+        if as_dict:
+            return [s.to_dict() for s in students]
+        
+        return students # Retorna a lista de objetos para o Jinj # Exemplo se tiver to_dict
 
     def delete_student(self, student_id):
         student = Student.query.get(student_id)

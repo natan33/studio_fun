@@ -4,4 +4,4 @@ from flask import Blueprint
 main = Blueprint('main', __name__)
 
 
-from . import view, errors
+from . import index, errors, students,academy

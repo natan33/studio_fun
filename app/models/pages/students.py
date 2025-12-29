@@ -33,6 +33,15 @@ class Student(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'full_name': self.full_name,
+            'cpf': self.cpf,
+            'birth_date': self.birth_date.strftime('%Y-%m-%d') if self.birth_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
 
 class StudentHealth(db.Model):
     __tablename__ = 'student_health_data'
