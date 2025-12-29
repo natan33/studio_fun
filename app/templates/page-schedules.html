@@ -1,0 +1,87 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Horários - Studio Fun{% endblock %}
+{% block page_title %}Configuração de Turmas{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-4 fw-bold text-primary">Nova Turma</h5>
+                <form id="scheduleForm">
+                    {{ form.csrf_token }}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Atividade</label>
+                        {{ form.activity_id(class="form-select form-select-lg") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Dia da Semana</label>
+                        {{ form.day_of_week(class="form-select") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Horário</label>
+                            {{ form.start_time(class="form-control", type="time") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Vagas</label>
+                            {{ form.max_capacity(class="form-control") }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 mt-2 shadow-sm">
+                        <i class="fas fa-clock me-2"></i>Agendar Horário
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="px-4">Atividade</th>
+                                <th>Dia</th>
+                                <th>Horário</th>
+                                <th class="text-center">Capacidade</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sch in schedules %}
+                            <tr>
+                                <td class="px-4">
+                                    <span class="badge bg-soft-primary text-primary p-2">
+                                        {{ sch.activity_ref.name }}
+                                    </span>
+                                </td>
+                                <td>{{ sch.day_of_week }}</td>
+                                <td class="fw-bold">{{ sch.start_time.strftime('%H:%M') }}</td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill bg-info text-dark">
+                                        {{ sch.max_capacity }} Alunos
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center py-5 text-muted">Nenhum horário configurado.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/schedules.js') }}"></script>
+{% endblock %}

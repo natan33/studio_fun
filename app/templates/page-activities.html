@@ -1,51 +1,55 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
+
+{% block title %}Aulas - Studio Fun{% endblock %}
+{% block page_title %}Gerenciar Tipos de Aulas{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-dark text-white">Novo Tipo de Aula</div>
-                <div class="card-body">
-                    <form id="activityForm">
-                        {{ form.csrf_token }}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Nome da Atividade</label>
-                            {{ form.name(class="form-control", placeholder="Ex: Zumba, Pilates...") }}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Descrição</label>
-                            {{ form.description(class="form-control", rows="3") }}
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Salvar Atividade</button>
-                    </form>
-                </div>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-4 fw-bold text-primary">Nova Atividade</h5>
+                <form id="activityForm">
+                    {{ form.csrf_token }}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Nome da Atividade</label>
+                        {{ form.name(class="form-control form-control-lg", placeholder="Ex: Zumba") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Descrição</label>
+                        {{ form.description(class="form-control", rows="4", placeholder="Breve resumo da aula...") }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm">
+                        <i class="fas fa-check-circle me-2"></i>Cadastrar Aula
+                    </button>
+                </form>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white fw-bold">Atividades Ativas</div>
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
                             <tr>
-                                <th>Nome</th>
-                                <th>Descrição</th>
-                                <th class="text-end">Ações</th>
+                                <th class="px-4 py-3">Nome</th>
+                                <th class="py-3">Descrição</th>
+                                <th class="py-3 text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for act in activities %}
                             <tr>
-                                <td><strong>{{ act.name }}</strong></td>
-                                <td class="text-muted small">{{ act.description or 'Sem descrição' }}</td>
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                <td class="px-4 fw-bold">{{ act.name }}</td>
+                                <td class="text-muted">{{ act.description or 'Nenhuma descrição fornecida.' }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-light text-danger"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="3" class="text-center">Nenhuma aula cadastrada.</td></tr>
+                            <tr><td colspan="3" class="text-center py-5 text-muted">Nenhuma atividade cadastrada.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -57,24 +61,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.getElementById('activityForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        
-        const response = await fetch(window.location.href, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            Swal.fire('Sucesso!', result.message, 'success').then(() => location.reload());
-        } else {
-            Swal.fire('Erro!', result.message, 'error');
-        }
-    });
-</script>
+    <script src="{{ url_for('static', filename='js/activities.js') }}"></script>
 {% endblock %}
