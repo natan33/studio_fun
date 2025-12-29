@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
-from core.factory import db 
+from app import db 
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(db.Model,UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -33,6 +34,9 @@ class User(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+    
+   
+ 
 
 
 class Registration(db.Model):

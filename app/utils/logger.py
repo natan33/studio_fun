@@ -1,26 +1,34 @@
 import logging
-from flask import g, has_app_context
+from flask import g, has_request_context
 
 class TraceIdFilter(logging.Filter):
     def filter(self, record):
-        # Verificamos se estamos dentro de um contexto de app Flask
-        # Se não estivermos (ex: no Celery ou terminal), definimos como 'n/a'
-        if has_app_context():
-            record.trace_id = getattr(g, "trace_id", "n/a")
+        if has_request_context():
+            record.trace_id = getattr(g, 'trace_id', 'N/A')
         else:
-            record.trace_id = "system"
+            record.trace_id = 'SYSTEM'
         return True
 
 def setup_logger():
-    # Definimos o nível e o formato
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | trace=%(trace_id)s | %(message)s"
-    )
-    
-    # Aplicamos o filtro ao logger raiz para capturar todos os logs
     logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # Se já existirem handlers (para evitar logs duplicados ao reiniciar o Flask)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        
+        # Criamos o filtro
+        trace_filter = TraceIdFilter()
+        handler.addFilter(trace_filter)
+        
+        # Definimos o formato NO HANDLER, garantindo que o filtro rode antes
+        formatter = logging.Formatter(
+            "%(asctime)s | %(levelname)s | trace=%(trace_id)s | %(message)s"
+        )
+        handler.setFormatter(formatter)
+        
+        logger.addHandler(handler)
     
-    # Evita adicionar múltiplos filtros se a função for chamada duas vezes
-    if not any(isinstance(f, TraceIdFilter) for f in logger.filters):
-        logger.add_filter(TraceIdFilter())
+    # IMPORTANTE: Desativar a propagação para evitar que o log padrão do Flask
+    # tente formatar a mensagem sem o nosso filtro.
+    logging.getLogger('werkzeug').propagate = True

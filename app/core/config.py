@@ -5,6 +5,7 @@ from pathlib import Path
 import socket
 import json
 from dotenv import load_dotenv
+import redis
 
 
 Setup = namedtuple('Setup', [ 'config'])
@@ -20,7 +21,7 @@ class BaseConfig:
     
     def __init__(self):
         # Resolve o diretório raiz (ajuste o número de .parent conforme sua estrutura)
-        self.BASE_DIR = Path(__file__).resolve().parent
+        self.BASE_DIR = Path.cwd()
         
         # Detecta ambiente
         self.FLASK_ENV = os.getenv("FLASK_ENV", "development").lower()
@@ -129,7 +130,6 @@ class Config(BaseConfig):
         self.SQLALCHEMY_DATABASE_URI = self.get_env_or_raise('SQLALCHEMY_DATABASE_URI')
         self.CELERY_BROKER_URL = self.get_env_or_raise('CELERY_BROKER_URL')
         self.CELERY_RESULT_BACKEND = self.get_env_or_raise('CELERY_RESULT_BACKEND')
-        self.VM_PASSWORD = self.get_env_or_raise('VM_PASS')
         self.SQLALCHEMY_TRACK_MODIFICATIONS = False
         self.MAX_CONTENT_LENGTH = 10 * 1024 * 1024
         self.DROPZONE_ALLOWED_FILE_CUSTOM = True
@@ -157,12 +157,15 @@ class Config(BaseConfig):
         self.MAIL_USE_TLS=self.get_env_or_raise('MAIL_USE_TLS')
         self.MAIL_USERNAME=self.get_env_or_raise('MAIL_USERNAME')
         self.MAIL_PASSWORD=self.get_env_or_raise('MAIL_PASSWORD')
-        self.TOKEN_SECRET_SOCKET = self.get_env_or_raise('TOKEN_SECRET_SOCKET')
-        self.LINK_SOCKET_SERVER=self.get_env_or_raise('LINK_SOCKET_SERVER')
-        self.API_SOCKET_HEADERS = {"Authorization": f"Bearer {self.get_env_or_raise('API_SOCKET_HEADERS')}"}
 
         self.MAX_CONTENT_LENGTH = 500 * 1000 * 1000
-        self.SESSION_TYPE = "filesystem"
+        self.SESSION_TYPE = 'redis'
+        self.SESSION_PERMANENT = False
+        self.SESSION_USE_SIGNER = True  # Adiciona segurança extra assinando o cookie
+        self.SESSION_REDIS = redis.from_url(self.get_env_or_raise('REDIS_URL'))
+        
+        # Dica Sênior: Defina um prefixo para não misturar sessões com chaves do Celery
+        self.SESSION_KEY_PREFIX = 'session:'
         self.SESSION_PERMANENT = False  # Habilitar sessões permanentes
         self.PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
         self.SESSION_USE_SIGNER = True

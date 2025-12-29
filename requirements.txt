@@ -8,6 +8,7 @@ Flask-Migrate
 Flask-Session
 Flask-SQLAlchemy
 Flask-WTF
+email_validator
 identity
 lxml
 numpy

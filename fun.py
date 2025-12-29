@@ -1,14 +1,25 @@
-from app.core.factory import create_app, db
-from app.models import User, Registration
+from app import create_app, db
 from flask_migrate import Migrate
+import os
 
+# IMPORTANTE: Importar todos os módulos de modelos aqui
+from app.models.auth.user import *
+from app.models.pages.students import *
+from app.models.pages.academy import *
+from app.models.pages.finance import *
+from app.models.pages.core import *
 
-# Define o ambiente desejado: 'development', 'testing' ou 'production'
-env = 'development'  # Altere o tipo de ambiente para development, testing ou production
-
-app = create_app(env)
+app = create_app(os.getenv('FLASK_ENV', 'development'))
 migrate = Migrate(app, db)
 
+# O shell_context ajuda muito para você testar no terminal depois
 @app.shell_context_processor
 def make_shell_context():
-   return dict(db=db, User=User, Registration=Registration)
+    return dict(
+        db=db, 
+        User=User, 
+        Student=Student, 
+        Plan=Plan, 
+        Invoice=Invoice,
+        Modality=Modality
+    )
