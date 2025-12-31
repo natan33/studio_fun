@@ -1,8 +1,15 @@
 
 from app.services.enrollment_service import EnrollmentService
+from app.utils.api_response import ApiResponse
 from . import api
 from flask_login import login_required
 
+
+@api.route('/api/enrollments', methods=['GET'])
+@login_required
+def get_enrollments():
+    service = EnrollmentService()
+    return service.list_enrollments()    
 
 @api.route('/api/enrollmente-dash', methods=['GET'])
 @login_required
@@ -15,3 +22,26 @@ def get_enrollment_dashboard_data():
 def lock_enrollment(id):
     service = EnrollmentService()
     return service.update_enrollment_status(id, 'Trancado')
+
+@api.route('/api/enrollments/<int:id>/toggle-status', methods=['POST'])
+@login_required
+def toggle_enrollment_status(id):
+    service = EnrollmentService()
+    return service.toggle_enrollment_status(id, "Ativo")
+
+
+@api.route('/api/enrollments/<int:id>/delete', methods=['DELETE', 'POST'])
+@login_required
+def delete_enrollment(id):
+    try:
+        # Utilizamos o service para lidar com a lógica de exclusão e banco de dados
+        success, message = EnrollmentService.delete_enrollment(id)
+        
+        if success:
+            return ApiResponse.success(message=message)
+        else:
+            return ApiResponse.error(message=message)
+            
+    except Exception as e:
+        print(f"Erro na rota de exclusão: {e}")
+        return ApiResponse.error(message="Erro interno ao processar a exclusão.")

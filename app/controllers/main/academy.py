@@ -55,4 +55,5 @@ def page_enrollments():
         return service.create_enrollment()
 
     enrollments = service.list_enrollments()
+    
     return render_template('page-enrollments.html', form=form, enrollments=enrollments)

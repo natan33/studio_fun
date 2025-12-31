@@ -4,144 +4,81 @@
 {% block page_title %}Gestão de Matrículas{% endblock %}
 
 {% block content %}
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm bg-primary text-white h-100">
-            <div class="card-body p-3 d-flex align-items-center">
-                <div class="bg-white bg-opacity-25 rounded p-3 text-center" style="width: 60px;">
-                    <i class="fas fa-users fa-lg"></i>
-                </div>
-                <div class="ms-3">
-                    <small class="d-block opacity-75">Total Matrículas</small>
-                    <h4 class="mb-0 fw-bold" id="card-total">...</h4>
-                </div>
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h6 class="text-muted">Total de Matrículas</h6>
+                <h2 class="fw-bold" id="card-total">0</h2>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm bg-success text-white h-100">
-            <div class="card-body p-3 d-flex align-items-center">
-                <div class="bg-white bg-opacity-25 rounded p-3 text-center" style="width: 60px;">
-                    <i class="fas fa-check-circle fa-lg"></i>
-                </div>
-                <div class="ms-3">
-                    <small class="d-block opacity-75">Status Ativo</small>
-                    <h4 class="mb-0 fw-bold" id="card-ativos">...</h4>
-                </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 border-start border-success border-4">
+            <div class="card-body">
+                <h6 class="text-muted">Alunos Ativos</h6>
+                <h2 class="fw-bold text-success" id="card-ativos">0</h2>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm bg-warning text-dark h-100">
-            <div class="card-body p-3 d-flex align-items-center">
-                <div class="bg-white bg-opacity-25 rounded p-3 text-center" style="width: 60px;">
-                    <i class="fas fa-pause-circle fa-lg"></i>
-                </div>
-                <div class="ms-3">
-                    <small class="d-block opacity-75">Trancados</small>
-                    <h4 class="mb-0 fw-bold" id="card-trancados">...</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm bg-dark text-white h-100">
-            <div class="card-body p-3 d-flex align-items-center">
-                <div class="bg-white bg-opacity-25 rounded p-3 text-center" style="width: 60px;">
-                    <i class="fas fa-chart-line fa-lg"></i>
-                </div>
-                <div class="ms-3">
-                    <small class="d-block opacity-75">Frequência Geral</small>
-                    <h4 class="mb-0 fw-bold text-info" id="card-freq">...</h4>
-                </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 border-start border-warning border-4">
+            <div class="card-body">
+                <h6 class="text-muted">Matrículas Trancadas</h6>
+                <h2 class="fw-bold text-warning" id="card-trancados">0</h2>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <div class="row g-3 align-items-center">
-            <div class="col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0"><i
-                            class="fas fa-search text-muted"></i></span>
-                    <input type="text" id="filterStudent" class="form-control border-start-0"
-                        placeholder="Buscar por aluno..." onkeyup="filterEnrollments()">
-                </div>
-            </div>
-            <div class="col-md-3">
-                <select id="filterActivity" class="form-select" onchange="filterEnrollments()">
-                    <option value="all">Todas as Atividades</option>
-                </select>
-            </div>
-            <div class="col-md-5 text-md-end">
-                <button class="btn btn-primary px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEnrollment">
-                    <i class="fas fa-plus me-2"></i>Nova Matrícula
-                </button>
-            </div>
+<div class="row g-3 mb-4 align-items-end">
+    <div class="col-md-5">
+        <label class="form-label small fw-bold text-muted">BUSCAR ALUNO</label>
+        <div class="input-group border rounded-pill px-3 py-1 bg-white shadow-sm">
+            <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+            <input type="text" id="filterStudent" class="form-control border-0 shadow-none"
+                placeholder="Digite o nome...">
         </div>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label small fw-bold text-muted">ATIVIDADE</label>
+        <select id="filterActivity" class="form-select border rounded-pill shadow-sm">
+            <option value="">Todas Atividades</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small fw-bold text-muted">DATA DA MATRÍCULA</label>
+        <input type="date" id="filterDate" class="form-control border rounded-pill shadow-sm">
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3 px-3">
+        <div id="paginationInfo" class="small text-muted"></div>
+        <div id="paginationButtons" class="btn-group"></div>
+    </div>
+
+    <div class="col-md-3">
+        <button class="btn btn-primary rounded-pill w-100 shadow-sm fw-bold" data-bs-toggle="modal"
+            data-bs-target="#modalEnrollment">
+            <i class="fas fa-plus-circle me-2"></i>Nova Matrícula
+        </button>
     </div>
 </div>
 
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="enrollmentTable">
-                <thead class="bg-light">
+            <table class="table table-hover align-middle" id="tableEnrollments">
+                <thead class="table-light">
                     <tr>
-                        <th class="px-4">Aluno</th>
-                        <th>Atividade</th>
-                        <th>Dia/Hora</th>
+                        <th>Aluno</th>
+                        <th>Turma</th>
+                        <th>Data Matrícula</th>
                         <th>Status</th>
-                        <th class="text-end px-4">Ações</th>
+                        <th class="text-center">Ações</th>
                     </tr>
                 </thead>
-                <tbody id="enrollmentTableBody">
-                    {% for en in enrollments %}
-                    <tr data-student="{{ en.student.full_name|lower }}"
-                        data-activity="{{ en.schedule.activity_ref.name|lower }}">
-                        <td class="px-4">
-                            <div class="fw-bold">{{ en.student.full_name }}</div>
-                            <small class="text-muted">{{ en.student.cpf or 'Sem CPF' }}</small>
-                        </td>
-                        <td>
-                            <span class="badge rounded-pill bg-soft-primary text-primary px-3">
-                                {{ en.schedule.activity_ref.name }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="small fw-bold text-dark">{{ en.schedule.day_of_week }}</div>
-                            <div class="small text-muted">{{ en.schedule.start_time.strftime('%H:%M') }}</div>
-                        </td>
-                        <td>
-                            {% if en.status == 'Ativo' %}
-                            <span
-                                class="badge bg-success-subtle text-success border border-success-subtle px-3">Ativo</span>
-                            {% elif en.status == 'Trancado' %}
-                            <span
-                                class="badge bg-warning-subtle text-warning border border-warning-subtle px-3">Trancado</span>
-                            {% else %}
-                            <span
-                                class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3">{{
-                                en.status }}</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-outline-warning" onclick="lockEnrollment('{{ en.id }}')"
-                                title="Trancar Matrícula">
-                                <i class="fas fa-lock"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">Nenhuma matrícula encontrada.</td>
-                    </tr>
-                    {% endfor %}
+                <tbody id="enrollmentsBody">
                 </tbody>
             </table>
         </div>

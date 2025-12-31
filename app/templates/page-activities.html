@@ -45,7 +45,10 @@
                                 <td class="px-4 fw-bold">{{ act.name }}</td>
                                 <td class="text-muted">{{ act.description or 'Nenhuma descrição fornecida.' }}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-light text-danger"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger border-0" title="Excluir"
+                                            onclick="deleteActivity('{{ act.id }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                 </td>
                             </tr>
                             {% else %}

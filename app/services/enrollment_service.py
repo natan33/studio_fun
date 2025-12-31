@@ -8,6 +8,31 @@ class EnrollmentService:
         self.form = forms
         self.request=request
 
+    def list_enrollments(self):
+            try:
+                from app.models.pages.academy import Enrollment
+    
+                # Buscamos todas as matrículas, incluindo as relações para evitar múltiplas queries
+                enrollments = Enrollment.query.all()
+                
+                data = [{
+                    "id": e.id,
+                    "student_name": e.student.full_name,
+                    "activity": e.schedule.activity_ref.name,
+                    "day": e.schedule.day_of_week,
+                    "time": e.schedule.start_time.strftime('%H:%M'),
+                    "status": e.status,
+                    "enrolled_at": e.enrollment_date.strftime('%d/%m/%Y')
+                } for e in enrollments]
+                
+                # Ordenar pelas mais recentes primeiro
+                data.sort(key=lambda x: x['id'], reverse=True)
+    
+                return ApiResponse.success(data=data)
+            except Exception as e:
+                print(f"Erro no Service: {e}")
+                return ApiResponse.error(message=str(e))
+
     def get_enrollment_dashboard_data(self):
             try:
                 from app.models.pages.academy import Enrollment, Attendance
@@ -57,3 +82,40 @@ class EnrollmentService:
                 db.session.rollback()
                 print(e)
                 return ApiResponse.error(message=str(e))
+            
+    def toggle_enrollment_status(self, enrollment_id=None, active_status="Ativo"):
+            try:
+                from app.models.pages.academy import Enrollment
+                
+                enrollment = Enrollment.query.get_or_404(enrollment_id)
+                
+                # Lógica de alternância (Toggle)
+                if enrollment.status == active_status:
+                    enrollment.status = 'Trancado'
+                    message = "Matrícula trancada com sucesso!"
+                else:
+                    enrollment.status = active_status
+                    message = "Matrícula reativada com sucesso!"
+                    
+                enrollment.save() # Assume que seu model tem o método .save()
+                
+                return ApiResponse.success(message=message, data={"new_status": enrollment.status})
+                
+            except Exception as e:
+                db.session.rollback()
+                return ApiResponse.error(message=f"Erro ao alterar status: {str(e)}")
+
+    @staticmethod
+    def delete_enrollment(enrollment_id=None):
+        try:
+            from app.models.pages.academy import Enrollment
+            enrollment = Enrollment.query.get(enrollment_id)
+            if not enrollment:
+                return False, "Matrícula não encontrada."
+
+            db.session.delete(enrollment)
+            db.session.commit()
+            return True, "Matrícula excluída com sucesso!"
+        except Exception as e:
+            db.session.rollback()
+            return False, str(e)

@@ -58,3 +58,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+async function deleteActivity(id) {
+    const csrfToken = document.querySelector('#csrf_token')?.value;
+
+    const { isConfirmed } = await Swal.fire({
+        title: 'Excluir Aula?',
+        text: "Isso removerá o horário da grade permanentemente!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (isConfirmed) {
+        try {
+            const response = await fetch(`/api/activities/${id}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.code === 'SUCCESS') {
+                Swal.fire({
+                    icon: 'success', 
+                    title: 'Excluído!', 
+                    timer: 1500, 
+                    showConfirmButton: false 
+                });
+                
+                // Função que recarrega a sua lista de aulas
+                if (typeof reloadActivitiesTable === 'function') {
+                    reloadActivitiesTable();
+                } else {
+                    location.reload(); // Fallback caso não tenha função AJAX de reload
+                }
+            } else {
+                Swal.fire('Erro', result.message, 'error');
+            }
+        } catch (error) {
+            Swal.fire('Erro', 'Falha na comunicação.', 'error');
+        }
+    }
+}
