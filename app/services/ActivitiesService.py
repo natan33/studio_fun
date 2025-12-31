@@ -1,22 +1,21 @@
 from app import db
-from app.models.pages.academy import Schedule
+from app.models.pages.academy import ClassSchedule
 from app.utils.api_response import ApiResponse
 
 class ActivitiesService:
     @staticmethod
-    def delete_activities(id_):
+    def toggle_activities_status(id_):
         try:
-            # Busca a aula (Schedule) pelo ID
-            activity = Schedule.query.get(id_)
-            
+            activity = ClassSchedule.query.get(id_)
             if not activity:
                 return False, "Aula não encontrada."
 
-            db.session.delete(activity)
+            # Lógica de alternância
+            activity.status = 'Inativo' if activity.status == 'Ativo' else 'Ativo'
+            
             db.session.commit()
-            return True, "Aula excluída com sucesso!"
+            return True, f"Status alterado para {activity.status} com sucesso!"
             
         except Exception as e:
             db.session.rollback()
-            print(f"Erro ao excluir aula: {e}")
-            return False, f"Erro ao excluir: {str(e)}"
+            return False, f"Erro ao atualizar banco: {str(e)}"

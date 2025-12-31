@@ -52,48 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// Adicione isto dentro ou logo abaixo do seu DOMContentLoaded
-document.getElementById('enrollmentForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault(); // IMPEDE O RELOAD DA TELA
 
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData.entries());
-    const csrfToken = document.querySelector('#csrf_token')?.value;
-
-    try {
-        const response = await fetch('/api/enrollments/create', { // Verifique sua rota de criação
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (result.code === 'SUCCESS') {
-            // 1. Fecha o modal
-            const modalEl = document.getElementById('modalEnrollment');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
-
-            // 2. Limpa o formulário
-            this.reset();
-
-            // 3. Alerta de sucesso
-            Swal.fire({ icon: 'success', title: 'Matriculado!', timer: 1500, showConfirmButton: false });
-
-            // 4. ATUALIZA A TABELA E OS CARDS SEM REFRESH
-            reloadEnrollmentsTable(); 
-        } else {
-            Swal.fire('Erro', result.message || 'Erro ao matricular', 'error');
-        }
-    } catch (error) {
-        console.error("Erro:", error);
-        Swal.fire('Erro', 'Falha na comunicação com o servidor', 'error');
-    }
-});
 
 async function reloadSchedulesTable() {
     try {

@@ -40,6 +40,8 @@ class ClassSchedule(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     activity_id = db.Column(db.Integer, db.ForeignKey('academy.activities.id'), nullable=False)
+
+    status = db.Column(db.String(20), default='Ativo')
     
     # SENIOR TIP: onupdate garante que o Postgres/SQLAlchemy atualize a data 
     # automaticamente em cada modificação do registro.
