@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from app import db
 from app.models.pages.academy import Activity, ClassSchedule, Enrollment
 from app.utils.api_response import ApiResponse
@@ -50,6 +51,27 @@ class AcademyService:
         return students # Retorna a lista de objetos para o Jinj # Exemplo se tiver to_dict
 
 
+    def update_schedule(self):
+        if not self.form or not self.form.validate_on_submit():
+            return ApiResponse.error(message="Erro nos dados da turma.", data=self.form.errors)
+
+        try:
+            schedule_id = self.request.form.get('schedule_id')
+            schedule = ClassSchedule.query.get(schedule_id)
+            if not schedule:
+                return ApiResponse.error(message="Horário de turma não encontrado.")
+
+            schedule.activity_id = self.form.activity_id.data
+            schedule.day_of_week = self.form.day_of_week.data
+            schedule.start_time = self.form.start_time.data
+            schedule.max_capacity = self.form.max_capacity.data
+
+            db.session.commit()
+            return ApiResponse.success(message="Horário de turma atualizado com sucesso!")
+        except Exception as e:
+            db.session.rollback()
+            return ApiResponse.error(message=f"Erro ao atualizar horário: {str(e)}")
+
     def create_schedule(self):
         if not self.form or not self.form.validate_on_submit():
             return ApiResponse.error(message="Erro nos dados da turma.", data=self.form.errors)
@@ -72,7 +94,12 @@ class AcademyService:
             from app.models.pages.academy import ClassSchedule, Activity
             
             # Fazemos um join com Activity para poder mostrar o NOME da aula na tabela
-            return ClassSchedule.query.join(Activity).order_by(
+            return ClassSchedule.query.join(Activity).filter(
+                or_(
+                    ClassSchedule.is_active == True,
+                    ClassSchedule.is_active == None
+                )
+            ).order_by(
                 ClassSchedule.day_of_week, 
                 ClassSchedule.start_time
             ).all()

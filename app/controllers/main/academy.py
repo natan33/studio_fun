@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import render_template, request, jsonify
 from flask_login import login_required
+from sqlalchemy import or_
 from app.controllers.forms.academy_forms import ActivityForm, ClassScheduleForm, EnrollmentForm
 from app.models.pages.academy import Activity, ClassSchedule
 from app.services.AcademyService import AcademyService
@@ -33,18 +34,21 @@ def page_schedules():
     form.activity_id.choices = [(a.id, a.name) for a in activities]
 
     if request.method == 'POST':
-        return service.create_schedule()
+        print("Form data received:", request.form.get('schedule_id'))
+        if form.type_form.data == 'form_edit':
+            return service.update_schedule()
+        else:
+            return service.create_schedule()
     
     # 2. FILTRAR LISTAGEM: Precisamos garantir que o service também filtre
     # Você tem duas opções: ajustar dentro do service ou filtrar aqui.
     schedules = service.list_schedules()
     
     # Se o seu service retorna uma lista de objetos, podemos filtrar via Python:
-    active_schedules = [s for s in schedules if s.status == 'Ativo']
+    active_schedules = [s for s in schedules if s.status == 'Ativo' and (s.is_active == True or s.is_active is None)]
     
     return render_template('page-schedules.html', 
-                           form=form, 
-                           schedules=active_schedules) # Enviamos apenas os ativos
+                           form=form) # Enviamos apenas os ativos
 
 
 @main.route('/academy/enrollments', methods=['GET', 'POST'])
@@ -58,7 +62,16 @@ def page_enrollments():
     from app.models.pages.students import Student
     form.student_id.choices = [(s.id, s.full_name) for s in Student.query.order_by('full_name').all()]
     
-    schedules = ClassSchedule.query.all()
+    schedules =  ClassSchedule.query.join(Activity).filter(
+                or_(
+                    ClassSchedule.is_active == True,
+                    ClassSchedule.is_active == None
+                )
+            ).order_by(
+                ClassSchedule.day_of_week, 
+                ClassSchedule.start_time
+            ).all()
+    
     form.schedule_id.choices = [
         (sch.id, f"{sch.activity_ref.name} - {sch.day_of_week} às {sch.start_time.strftime('%H:%M')}") 
         for sch in schedules

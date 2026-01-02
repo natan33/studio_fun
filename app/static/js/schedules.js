@@ -1,4 +1,4 @@
-// static/js/schedules.js
+
 document.addEventListener('DOMContentLoaded', () => {
     reloadSchedulesTable();
 
@@ -283,6 +283,8 @@ async function editSchedule(id) {
             // Transforma o visual do Modal para Edição
             document.querySelector('#modalSchedule .modal-title').innerHTML = '<i class="fas fa-edit me-2"></i>Editar Turma';
             document.querySelector('#modalSchedule .modal-header').classList.replace('bg-primary', 'bg-warning');
+            document.getElementById('type_form').value = 'form_edit';
+
 
             modal.show();
         } else {
@@ -298,6 +300,8 @@ document.querySelector('[data-bs-target="#modalSchedule"]').addEventListener('cl
     const form = document.getElementById('scheduleForm');
     form.reset();
     form.querySelector('#schedule_id').value = '';
+    document.getElementById('type_form').value = '';
+
     document.querySelector('#modalSchedule .modal-title').innerHTML = '<i class="fas fa-clock me-2"></i>Cadastrar Novo Horário';
     document.querySelector('#modalSchedule .modal-header').classList.replace('bg-warning', 'bg-primary');
 });

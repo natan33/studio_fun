@@ -15,6 +15,8 @@ class ActivityForm(FlaskForm):
 class ClassScheduleForm(FlaskForm):
     # O campo de atividade será preenchido dinamicamente no Controller
     activity_id = SelectField('Tipo de Aula', coerce=int, validators=[DataRequired()])
+
+    type_form = HiddenField('type_form')
     
     day_of_week = SelectField('Dia da Semana', choices=[
         ('Segunda-feira', 'Segunda-feira'),
@@ -22,7 +24,9 @@ class ClassScheduleForm(FlaskForm):
         ('Quarta-feira', 'Quarta-feira'),
         ('Quinta-feira', 'Quinta-feira'),
         ('Sexta-feira', 'Sexta-feira'),
-        ('Sábado', 'Sábado')
+        ('Sábado', 'Sábado'),
+        ('Segunda, Quarta e Sexta', 'Segunda, Quarta e Sexta'),
+        ('Terça e Quinta', 'Terça e Quinta')
     ], validators=[DataRequired()])
     
     start_time = TimeField('Horário de Início', validators=[DataRequired()])

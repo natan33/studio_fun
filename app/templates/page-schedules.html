@@ -75,6 +75,7 @@
             <form id="scheduleForm">
                 <div class="modal-body p-4">
                     {{ form.csrf_token }}
+                    {{ form.type_form() }}
                     <input type="hidden" id="schedule_id" name="schedule_id" value="">
 
                     <div class="mb-4">

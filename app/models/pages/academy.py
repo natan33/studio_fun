@@ -34,7 +34,7 @@ class ClassSchedule(db.Model):
     __table_args__ = {"schema": "academy"}
 
     id = db.Column(db.Integer, primary_key=True)
-    day_of_week = db.Column(db.String(20), nullable=False) # 0-6 (Segunda-Domingo)
+    day_of_week = db.Column(db.String(100), nullable=False) # 0-6 (Segunda-Domingo)
     start_time = db.Column(db.Time, nullable=False)
     max_capacity = db.Column(db.Integer, default=15)
 
@@ -42,6 +42,7 @@ class ClassSchedule(db.Model):
     activity_id = db.Column(db.Integer, db.ForeignKey('academy.activities.id'), nullable=False)
 
     status = db.Column(db.String(20), default='Ativo')
+    is_active = db.Column(db.Boolean, default=True)
     
     # SENIOR TIP: onupdate garante que o Postgres/SQLAlchemy atualize a data 
     # automaticamente em cada modificação do registro.

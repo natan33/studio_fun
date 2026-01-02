@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from app import db
 
 from app.utils.api_response import ApiResponse
@@ -44,10 +45,18 @@ class SchedulesService:
             
         """Metodo para listar todas as turmas cadastradas."""
         try:
-            from app.models.pages.academy import ClassSchedule
+            from app.models.pages.academy import ClassSchedule, Activity
             
             # Buscamos todas as turmas
-            schedules = ClassSchedule.query.all()    
+            schedules = ClassSchedule.query.join(Activity).filter(
+                or_(
+                    ClassSchedule.is_active == True,
+                    ClassSchedule.is_active == None
+                )
+            ).order_by(
+                ClassSchedule.day_of_week, 
+                ClassSchedule.start_time
+            ).all()   
             
             # Formatamos os dados para JSON
             data = [{
@@ -102,7 +111,7 @@ class SchedulesService:
             if not sch:
                 return ApiResponse.error(message="Turma não encontrada.")
             
-            db.session.delete(sch)
+            sch.is_active = False
             db.session.commit()
             return ApiResponse.success(message="Horário removido com sucesso!")
         except Exception as e:
