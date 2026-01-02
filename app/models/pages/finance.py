@@ -35,21 +35,40 @@ class Invoice(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.students.id'))
-    value = db.Column(db.Numeric(10, 2))
-    due_date = db.Column(db.Date)
-    status = db.Column(db.String(20), default='open') # open, paid, overdue
-
-
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    plan_id = db.Column(db.Integer, db.ForeignKey('finance.plans.id'))
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    due_date = db.Column(db.Date, nullable=False) # Data de Vencimento
+    payment_date = db.Column(db.DateTime) # Data que o aluno pagou
     
-    # SENIOR TIP: onupdate garante que o Postgres/SQLAlchemy atualize a data 
-    # automaticamente em cada modificação do registro.
-    update_at = db.Column(
-        db.DateTime, 
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc)
-    )
+    # Status: 'pending' (pendente), 'paid' (pago), 'cancelled' (cancelado)
+    status = db.Column(db.String(20), default='pending')
+    
+    # Campos para Integração de Cobrança
+    payment_method = db.Column(db.String(20)) # 'pix' ou 'boleto'
+    external_id = db.Column(db.String(100)) # ID da transação no Gateway (Mercado Pago, Asaas, etc)
+    pix_copy_paste = db.Column(db.Text) # Código Pix Copia e Cola
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relacionamentos
+    student = db.relationship('Student', backref='invoices')
+    plan = db.relationship('Plan')
 
+    @property
+    def financial_status(self):
+        """Retorna o status calculado para o Front-end"""
+        if self.status == 'paid':
+            return 'em_dia'
+        
+        hoje = datetime.now().date()
+        if hoje > self.due_date:
+            atraso = (hoje - self.due_date).days
+            if atraso > 90:
+                return 'inadimplente' # Bloqueio automático
+            return 'atrasado'
+            
+        return 'pendente'
+    
     def save(self):
         db.session.add(self)
         db.session.commit()

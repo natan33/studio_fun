@@ -14,6 +14,13 @@ def api_list_students():
     s_id = request.args.get('schedule_id')
     date = request.args.get('date')
     data = AttendanceService.list_students_for_class(s_id, date)
+    
+    # Adicionamos a info de bloqueio em cada aluno da lista
+    from app.models.pages.academy import Student
+    for student_data in data:
+        student = Student.query.get(student_data['id'])
+        student_data['is_blocked'] = student.is_blocked if student else False
+        
     return ApiResponse.success(data=data)
 
 
@@ -61,7 +68,17 @@ def api_mark_attendance():
     form = MarkAttendanceForm()
     
     if form.validate_on_submit():
-        # O próprio Form já limpou os dados para nós
+        # --- NOVA REGRA DE BLOQUEIO ---
+        from app.models.pages.academy import Student # Importe o modelo Student
+        student = Student.query.get(form.student_id.data)
+        
+        if student and student.is_blocked: # Usando a @property que criamos no Model
+            return ApiResponse.error(
+                message=f"BLOQUEIO FINANCEIRO: O aluno {student.full_name} está inadimplente há mais de 90 dias.",
+                code="FINANCIAL_BLOCK"
+            )
+        # ------------------------------
+
         success, message = AttendanceService.mark_attendance(
             student_id=form.student_id.data,
             schedule_id=form.schedule_id.data,
@@ -73,7 +90,6 @@ def api_mark_attendance():
             return ApiResponse.success(message=message)
         return ApiResponse.error(message=message)
     
-    # Se cair aqui, o CSRF falhou ou os dados são inválidos
     errors = ", ".join([f"{k}: {v[0]}" for k, v in form.errors.items()])
     return ApiResponse.error(message=f"Erro de validação: {errors}")
 

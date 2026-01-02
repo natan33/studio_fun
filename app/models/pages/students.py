@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 class Student(db.Model):
     __tablename__ = 'students'
@@ -44,6 +44,24 @@ class Student(db.Model):
 
     # Relacionamento com dados de saúde
     health_data = db.relationship('StudentHealth', backref='student', uselist=False)
+
+    @property
+    def is_blocked(self):
+        """Verifica se o aluno tem faturas pendentes há mais de 90 dias"""
+        hoje = datetime.now().date()
+        limite_atraso = hoje - timedelta(days=90)
+        
+        # Busca faturas: pendentes AND vencimento menor que a data limite (90 dias atrás)
+        # Importamos Invoice aqui dentro para evitar importação circular
+        from app.models.pages.finance import Invoice
+        
+        invoice_critica = Invoice.query.filter(
+            Invoice.student_id == self.id,
+            Invoice.status == 'pending',
+            Invoice.due_date < limite_atraso
+        ).first()
+
+        return invoice_critica is not None
 
 
     def save(self):
