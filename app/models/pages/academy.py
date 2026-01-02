@@ -65,20 +65,25 @@ class Attendance(db.Model):
     __table_args__ = {"schema": "academy"}
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.students.id'))
-    schedule_id = db.Column(db.Integer, db.ForeignKey('academy.class_schedule.id'))
-    date = db.Column(db.Date, default=lambda: datetime.now(timezone.utc).date())
-
+    student_id = db.Column(db.Integer, db.ForeignKey('students.students.id'), nullable=False)
+    schedule_id = db.Column(db.Integer, db.ForeignKey('academy.class_schedule.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.String(20)) # 'Presente', 'Falta', 'Justificado'
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
-    # SENIOR TIP: onupdate garante que o Postgres/SQLAlchemy atualize a data 
-    # automaticamente em cada modificação do registro.
-    update_at = db.Column(
-        db.DateTime, 
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc)
-    )
 
+    def __repr__(self):
+        return f"<Attendance id={self.id} student_id={self.student_id} schedule_id={self.schedule_id} date={self.date} status={self.status}>"
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "student_id": self.student_id,
+            "schedule_id": self.schedule_id,
+            "date": self.date.isoformat(),
+            "status": self.status,
+            "created_at": self.created_at.isoformat()
+        }
+    
     def save(self):
         db.session.add(self)
         db.session.commit()
@@ -86,6 +91,15 @@ class Attendance(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        db.session.commit()
+
+    @classmethod
+    def get_by_id(cls, attendance_id):
+        return cls.query.get(attendance_id)
 
 
 class AttendanceSummary(db.Model):

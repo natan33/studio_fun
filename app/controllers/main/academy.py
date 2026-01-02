@@ -1,7 +1,8 @@
+from datetime import datetime
 from flask import render_template, request, jsonify
 from flask_login import login_required
 from app.controllers.forms.academy_forms import ActivityForm, ClassScheduleForm, EnrollmentForm
-from app.models.pages.academy import Activity
+from app.models.pages.academy import Activity, ClassSchedule
 from app.services.AcademyService import AcademyService
 from app.services.ActivitiesService import ActivitiesService
 from . import main # ou seu blueprint específico
@@ -69,3 +70,15 @@ def page_enrollments():
     enrollments = service.list_enrollments()
     
     return render_template('page-enrollments.html', form=form, enrollments=enrollments)
+
+
+@main.route('/academy/attendance')
+@login_required
+def page_attendance():
+    # Carrega os horários para o dropdown de filtros
+    schedules = ClassSchedule.query.join(Activity).filter(Activity.status == 'Ativo').all()
+    today = datetime.now().strftime('%Y-%m-%d')
+    from app.controllers.forms.academy_forms import MarkAttendanceForm
+    form = MarkAttendanceForm()
+
+    return render_template('attendance.html', schedules=schedules, today_date=today, form=form)

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, IntegerField, SelectField, StringField, TextAreaField, SubmitField, TimeField
-from wtforms.validators import DataRequired, Length,NumberRange
+from wtforms import DateField, HiddenField, IntegerField, SelectField, StringField, TextAreaField, SubmitField, TimeField
+from wtforms.validators import DataRequired, Length,NumberRange,AnyOf
 
 class ActivityForm(FlaskForm):
     activity_id = HiddenField('ID')
@@ -38,3 +38,15 @@ class EnrollmentForm(FlaskForm):
     student_id = SelectField('Selecionar Aluno', coerce=int, validators=[DataRequired()])
     schedule_id = SelectField('Selecionar Turma', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Confirmar Matrícula')
+
+
+
+class MarkAttendanceForm(FlaskForm):
+    student_id = IntegerField('Aluno ID', validators=[DataRequired()])
+    schedule_id = IntegerField('Grade ID', validators=[DataRequired()])
+    attendance_date = DateField('Data', validators=[DataRequired()])
+    # Garante que o status seja apenas um dos três permitidos
+    status = StringField('Status', validators=[
+        DataRequired(), 
+        AnyOf(['Presente', 'Falta', 'Justificado'], message="Status inválido")
+    ])

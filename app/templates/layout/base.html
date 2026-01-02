@@ -186,6 +186,15 @@
                         <i class="fas fa-calendar-alt"></i> Turmas e Horários
                     </a>
                 </li>
+
+                <li>
+                    <a href="{{ url_for('main.page_attendance') }}"
+                        class="nav-link {% if 'attendance' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-calendar-check"></i> Presença
+                    </a>
+                </li>
+                    </a>
+                </li>
                 <li>
                     <a href="{{ url_for('main.page_enrollments') }}"
                         class="nav-link {% if 'enroll' in request.endpoint %}active{% endif %}">
