@@ -152,6 +152,8 @@ class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     description = db.Column(db.Text)
+
+    status = db.Column(db.String(20), default='Ativo')
     
     # Relacionamento para facilitar a busca de turmas de uma atividade
     schedules = db.relationship('ClassSchedule', backref='activity_ref', lazy=True)
@@ -174,13 +176,12 @@ class Activity(db.Model):
         db.session.commit()
 
     def to_dict(self):
-        return {
-            'id': self.id,
-            'full_name': self.full_name,
-            'cpf': self.cpf,
-            'birth_date': self.birth_date.strftime('%Y-%m-%d') if self.birth_date else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
+            return {
+                'id': self.id,
+                'name': self.name,
+                'description': self.description,
+                'status': self.status or 'Ativo'
+            }
 
 
 class Enrollment(db.Model):

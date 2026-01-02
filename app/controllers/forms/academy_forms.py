@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, SelectField, StringField, TextAreaField, SubmitField, TimeField
+from wtforms import HiddenField, IntegerField, SelectField, StringField, TextAreaField, SubmitField, TimeField
 from wtforms.validators import DataRequired, Length,NumberRange
 
 class ActivityForm(FlaskForm):
+    activity_id = HiddenField('ID')
     name = StringField('Nome da Atividade', validators=[
         DataRequired(), 
         Length(min=3, max=50, message="O nome deve ter entre 3 e 50 caracteres")
