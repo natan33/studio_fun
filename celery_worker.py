@@ -1,16 +1,23 @@
 from app import create_app
 from app.tasks import make_celery
+from celery.schedules import crontab
 
 app = create_app('development')
 celery = make_celery(app)
 
 # IMPORTAR TODAS TASKS
-# import app.tasks.excel_task
+import app.tasks.finance_tasks
 # import app.tasks.uplaods_blob_task
 # import app.tasks.uplaoder_google_driver
 # import app.tasks.lote_views_task
 # import app.tasks.marcar_inativos_task
 # import app.tasks.notificacoes_task
+celery.conf.beat_schedule = {
+    'gerar-faturas-todo-mes': {
+        'task': 'app.tasks.generate_monthly_invoices_task',
+        'schedule': crontab(day_of_month=1, hour=0, minute=0), # Meia-noite do dia 1
+    },
+}
 
 # celery.conf.beat_schedule = {
 #     "marcar-usuarios-inativos-a-cada-5-min": {

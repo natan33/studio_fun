@@ -99,7 +99,15 @@ async function markAttendance(studentId, status) {
 
         const result = await response.json();
 
-        if (result.code === 'SUCCESS') {
+        if (result.code === 'FINANCIAL_BLOCK') {
+            // Exibe um alerta vermelho estilizado (pode usar SweetAlert2)
+            Swal.fire({
+                icon: 'error',
+                title: 'Bloqueio Financeiro',
+                text: result.message,
+                footer: '<a href="/financeiro">Ir para o financeiro</a>'
+            });
+        } else if (result.code === 'SUCCESS') {
             Swal.fire({
                 toast: true,
                 position: 'top-end',

@@ -1,0 +1,149 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Financeiro - Studio Fun{% endblock %}
+{% block page_title %}Gestão Financeira{% endblock %}
+
+{% block content %}
+<input type="hidden" name="ttk" id="ttk" value="{{ csrf_token() }}">
+<style>
+    /* ... Seus estilos permanecem iguais ... */
+    .badge-finance { padding: 0.5em 0.8em; border-radius: 50px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+    .status-paid { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+    .status-late { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .status-default { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; animation: pulse-red 2s infinite; }
+
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+
+    .btn-action-finance { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: transform 0.2s; }
+    .btn-action-finance:hover { transform: translateY(-2px); }
+    .card { border-radius: 12px; }
+    .card h6 { text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem; font-weight: 700; }
+    .bg-primary { background: linear-gradient(45deg, #0d6efd, #0a58ca) !important; }
+    .bg-success { background: linear-gradient(45deg, #198754, #146c43) !important; }
+    .bg-warning { background: linear-gradient(45deg, #ffc107, #e0a800) !important; }
+    .bg-danger { background: linear-gradient(45deg, #dc3545, #bb2d3b) !important; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-primary text-white text-center">
+                <div class="card-body">
+                    <h6 class="text-white-50">Receita do Mês</h6>
+                    <h3 class="fw-bold mb-0">
+                        R$ {{ "{:,.2f}".format(data.monthly_revenue | default(0)).replace(',', 'v').replace('.', ',').replace('v', '.') }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-success text-white text-center">
+                <div class="card-body">
+                    <h6 class="text-white-50">Total Recebido</h6>
+                    <h3 class="fw-bold mb-0">
+                        R$ {{ "{:,.2f}".format(data.total_paid | default(0)).replace(',', 'v').replace('.', ',').replace('v', '.') }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-warning text-dark text-center">
+                <div class="card-body">
+                    <h6 class="text-dark-50">Atrasados</h6>
+                    <h3 class="fw-bold mb-0">
+                        R$ {{ "{:,.2f}".format(data.total_late | default(0)).replace(',', 'v').replace('.', ',').replace('v', '.') }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-danger text-white text-center">
+                <div class="card-body">
+                    <h6 class="text-white-50">Inadimplentes (>90 dias)</h6>
+                    <h3 class="fw-bold mb-0">{{ data.total_default | default(0) }} Alunos</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-lg">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-dark">
+                <i class="fas fa-money-bill-wave me-2 text-success"></i>Controle de Mensalidades
+            </h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-dark btn-sm d-flex align-items-center" onclick="triggerInvoiceGeneration()">
+                    <i class="fas fa-sync me-2"></i> <span class="d-none d-md-inline">Gerar Mensalidades</span>
+                </button>
+                <select id="filterStatus" class="form-select form-select-sm" style="width: 180px;">
+                    <option value="">Todos os Status</option>
+                    <option value="em_dia">Em Dia</option>
+                    <option value="atrasado">Atrasado</option>
+                    <option value="inadimplente">Inadimplente</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="financialTable" class="table table-hover align-middle w-100">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Aluno</th>
+                            <th>Plano</th>
+                            <th>Vencimento</th>
+                            <th>Valor</th>
+                            <th>Status / Bloqueio</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="financialTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="billingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-dark text-white border-0">
+                <h5 class="modal-title">Gerar Cobrança</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p id="billingInfo" class="text-muted"></p>
+                <div class="d-grid gap-3">
+                    <button class="btn btn-outline-primary py-3 fw-bold" onclick="generatePix()">
+                        <i class="fab fa-pix me-2"></i>Gerar PIX QR-Code
+                    </button>
+                    <button class="btn btn-outline-secondary py-3 fw-bold" onclick="generateBoleto()">
+                        <i class="fas fa-barcode me-2"></i>Gerar Boleto Bancário
+                    </button>
+                </div>
+                <div id="qrCodeContainer" class="mt-4 d-none">
+                    <img id="qrCodeImg" src="" class="img-fluid border p-2 mb-2" style="max-width: 200px;">
+                    <p class="small text-muted">Copia e Cola disponível abaixo</p>
+                    <input type="text" id="pixCodeText" class="form-control form-control-sm text-center" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/financeiro.js') }}"></script>
+{% endblock %}

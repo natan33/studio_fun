@@ -45,6 +45,8 @@ class Student(db.Model):
     # Relacionamento com dados de saúde
     health_data = db.relationship('StudentHealth', backref='student', uselist=False)
 
+    plan_id = db.Column(db.Integer, db.ForeignKey('finance.plans.id'), nullable=True)
+
     @property
     def is_blocked(self):
         """Verifica se o aluno tem faturas pendentes há mais de 90 dias"""
