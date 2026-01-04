@@ -13,13 +13,13 @@ def api_finance_list():
 
     # Exemplo de busca no banco
     
-@api.route('/api/finance/pay/<int:id>', methods=['POST'])
-@login_required
-def api_pay_invoice(id):
-    success, message = FinanceService.process_payment(id)
-    if success:
-        return ApiResponse.success(message=message)
-    return ApiResponse.error(message=message)
+# @api.route('/api/finance/pay/<int:id>', methods=['POST'])
+# @login_required
+# def api_pay_invoice(id):
+#     success, message = FinanceService.process_payment(id)
+#     if success:
+#         return ApiResponse.success(message=message)
+#     return ApiResponse.error(message=message)
 
 
 @api.route('/api/finance/generate-mass', methods=['POST'])
@@ -38,3 +38,14 @@ def api_generate_mass_invoices():
 
     except Exception as e:
         return ApiResponse.error(message=f"Erro ao iniciar processo: {str(e)}")
+
+@api.route('/api/finance/pay/<int:id>', methods=['POST'])
+@login_required
+def api_pay_invoice_(id):
+    from app.services.FinanceService import FinanceService
+    
+    success, message = FinanceService.mark_as_paid(id)
+    
+    if success:
+        return ApiResponse.success(message=message)
+    return ApiResponse.error(message=message)

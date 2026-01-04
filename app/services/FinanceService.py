@@ -96,3 +96,22 @@ class FinanceService:
         invoice.payment_date = datetime.now()
         db.session.commit()
         return True, "Pagamento registrado com sucesso!"
+    
+
+    @staticmethod
+    def mark_as_paid(invoice_id=None):
+        invoice = Invoice.query.get(invoice_id)
+        if not invoice:
+            return False, "Fatura não encontrada."
+        
+        if invoice.status == 'paid':
+            return False, "Esta fatura já foi paga."
+
+        try:
+            invoice.status = 'paid'
+            invoice.payment_date = datetime.now()
+            db.session.commit()
+            return True, "Pagamento registado com sucesso!"
+        except Exception as e:
+            db.session.rollback()
+            return False, f"Erro ao processar: {str(e)}"

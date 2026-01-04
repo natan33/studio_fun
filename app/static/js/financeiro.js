@@ -38,10 +38,39 @@ $(document).ready(function () {
             },
             {
                 "data": null,
-                "defaultContent": `
-                    <button class="btn btn-sm btn-primary btn-pay"><i class="fas fa-dollar-sign"></i></button>
-                    <button class="btn btn-sm btn-secondary btn-msg"><i class="fab fa-whatsapp"></i></button>
-                `
+                "className": "text-center",
+                "render": function (data, type, row) {
+                    let buttons = `<div class="d-flex justify-content-center gap-2">`;
+
+                    // Botão de Baixa Manual (só aparece se NÃO estiver pago)
+                    if (row.status !== 'paid') {
+                        buttons += `
+                    <button class="btn btn-success btn-action-finance" 
+                            onclick="confirmManualPayment(${row.id}, '${row.student_name}')" 
+                            title="Dar Baixa Manual">
+                        <i class="fas fa-check"></i>
+                    </button>`;
+                    }
+
+                    // Botão de Gerar PIX/Cobrança
+                    buttons += `
+                <button class="btn btn-primary btn-action-finance" 
+                        onclick="openBillingModal(${row.id})" 
+                        title="Gerar Cobrança/PIX">
+                    <i class="fas fa-qrcode"></i>
+                </button>`;
+
+                    // Botão de WhatsApp (Substituindo o btn-msg que você tinha)
+                    buttons += `
+                <button class="btn btn-secondary btn-action-finance" 
+                        onclick="sendWhatsApp('${row.student_phone}', '${row.student_name}')" 
+                        title="Enviar Mensagem">
+                    <i class="fab fa-whatsapp"></i>
+                </button>`;
+
+                    buttons += `</div>`;
+                    return buttons;
+                }
             }
         ],
         "createdRow": function (row, data, dataIndex) {
@@ -87,7 +116,7 @@ $(document).ready(function () {
 });
 
 function triggerInvoiceGeneration() {
- 
+
     const ttk = document.getElementById('ttk').value;
 
     Swal.fire({
@@ -104,26 +133,68 @@ function triggerInvoiceGeneration() {
                 didOpen: () => { Swal.showLoading(); }
             });
 
-            fetch('/api/finance/generate-mass', { 
+            fetch('/api/finance/generate-mass', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': ttk // Aqui enviamos o token necessário
                 }
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.code === 'SUCCESS') {
-                    Swal.fire('Sucesso!', data.message, 'success').then(() => {
-                        window.location.reload(); 
-                    });
-                } else {
-                    Swal.fire('Erro!', data.message, 'error');
+                .then(res => res.json())
+                .then(data => {
+                    if (data.code === 'SUCCESS') {
+                        Swal.fire('Sucesso!', data.message, 'success').then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Erro!', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Erro!', 'Falha na comunicação com o servidor.', 'error');
+                });
+        }
+    });
+}
+
+function confirmManualPayment(invoiceId, studentName) {
+    const ttk = document.getElementById('ttk').value;
+
+    Swal.fire({
+        title: 'Confirmar Pagamento?',
+        text: `Deseja dar baixa manual na fatura de ${studentName}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, pago!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/finance/pay/${invoiceId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': ttk
                 }
             })
-            .catch(error => {
-                Swal.fire('Erro!', 'Falha na comunicação com o servidor.', 'error');
-            });
+                .then(res => res.json())
+                .then(data => {
+                    if (data.code === 'SUCCESS') {
+                        Swal.fire('Pago!', data.message, 'success').then(() => {
+                            // Recarrega a tabela e os cards para atualizar os valores
+                            if (typeof table !== 'undefined') {
+                                table.ajax.reload(null, false); // false para manter a página atual
+                            }
+                            window.location.reload(); // Recarrega para atualizar os cards de resumo
+                        });
+                    } else {
+                        Swal.fire('Erro!', data.message, 'error');
+                    }
+                })
+                .catch(() => {
+                    Swal.fire('Erro!', 'Falha na comunicação com o servidor.', 'error');
+                });
         }
     });
 }
