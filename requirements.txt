@@ -40,3 +40,6 @@ google-api-python-client
 PyJWT
 Flask-SocketIO
 Flask-APScheduler
+qrcode
+crcmod
+pillow

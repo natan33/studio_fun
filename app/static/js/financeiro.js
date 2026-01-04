@@ -68,6 +68,15 @@ $(document).ready(function () {
                     <i class="fab fa-whatsapp"></i>
                 </button>`;
 
+                    // Botão de Inativar Pagamento (só aparece se NÃO estiver pago)
+                    //if (row.status !== 'paid') {
+                    buttons += `<button class="btn btn-sm btn-outline-danger" 
+                                onclick="inativarPagamento(this, ${row.id})" 
+                                title="Inativar Cobrança">
+                            <i class="fas fa-ban"></i>
+                        </button>`;
+                    //}
+
                     buttons += `</div>`;
                     return buttons;
                 }
@@ -195,6 +204,179 @@ function confirmManualPayment(invoiceId, studentName) {
                 .catch(() => {
                     Swal.fire('Erro!', 'Falha na comunicação com o servidor.', 'error');
                 });
+        }
+    });
+}
+
+
+function openBillingModal(invoiceId) {
+    // 1. Abre o Swal de Carregamento (Tamanho reduzido)
+    Swal.fire({
+        title: 'Gerando PIX...',
+        html: 'Estamos preparando seu QR Code.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+        width: '300px' // Tamanho reduzido
+    });
+
+    // 2. Chama a API para iniciar a task no Celery
+    fetch(`/api/finance/generate-pix-task/${invoiceId}`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': document.getElementById('ttk').value }
+    })
+        .then(res => res.json())
+        .then(response => {
+            if (response.code === 'SUCCESS') {
+                const taskId = response.data.task_id;
+                checkPixStatus(taskId); // Começa o Polling
+            } else {
+                Swal.fire('Erro', response.message, 'error');
+            }
+        })
+        .catch(() => Swal.fire('Erro', 'Falha ao conectar com o servidor.', 'error'));
+}
+
+function checkPixStatus(taskId) {
+    const interval = setInterval(() => {
+        fetch(`/api/finance/task-status/${taskId}`)
+            .then(res => res.json())
+            .then(response => {
+                // Caso 1: Sucesso total
+                // Dentro do seu checkPixStatus...
+                if (response.code === 'SUCCESS' && response.data.status === 'SUCCESS') {
+                    clearInterval(interval);
+                    Swal.close();
+
+                    const pixData = response.data.result;
+                    const inputElement = document.getElementById('pixCopiaCola');
+                    const frameElement = document.getElementById('qrCodeFrame');
+
+                    if (frameElement && inputElement) {
+                        // Agora o link será algo como: /static/pix_codes/pix_3.png?v=123456
+                        frameElement.src = pixData.qr_code_url + "?v=" + new Date().getTime();
+                        frameElement.onload = function () {
+                            try {
+                                const doc = frameElement.contentDocument || frameElement.contentWindow.document;
+                                const img = doc.querySelector('img');
+
+                                if (img) {
+                                    // Remove margens do corpo do iframe
+                                    doc.body.style.margin = "0";
+                                    doc.body.style.display = "flex";
+                                    doc.body.style.justifyContent = "center";
+                                    doc.body.style.alignItems = "center";
+                                    doc.body.style.height = "100vh";
+
+                                    // Força a imagem a nunca ultrapassar o tamanho do iframe e centralizar
+                                    img.style.maxWidth = "100%";
+                                    img.style.maxHeight = "100%";
+                                    img.style.objectFit = "contain";
+                                }
+                            } catch (e) {
+                                console.warn("Ajuste de estilo do iframe ignorado devido à política de mesma origem ou erro de carregamento.");
+                            }
+                        };
+                        inputElement.value = pixData.copy_paste;
+
+                        const modalElement = document.getElementById('pixModal');
+                        let myModal = bootstrap.Modal.getInstance(modalElement);
+                        if (!myModal) myModal = new bootstrap.Modal(modalElement);
+                        myModal.show();
+                    }
+                }
+                // Caso 2: Task retornou FAILED ou erro interno
+                else if (response.data && (response.data.status === 'FAILURE' || response.data.status === 'FAILED')) {
+                    clearInterval(interval);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro na geração',
+                        text: response.data.error || 'Erro desconhecido no processamento.'
+                    });
+                }
+            })
+            .catch(err => {
+                console.error("Erro na requisição de status:", err);
+                // Opcional: Limpar intervalo se o servidor cair
+            });
+    }, 2000);
+}
+
+function copyPixCode() {
+    const copyText = document.getElementById("pixCopiaCola");
+
+    if (!copyText || !copyText.value) {
+        return;
+    }
+
+    // Seleciona o texto
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // Para dispositivos móveis
+
+    // Copia para a área de transferência
+    navigator.clipboard.writeText(copyText.value).then(() => {
+        // Feedback visual usando Toast do SweetAlert2
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: 'Código PIX copiado!'
+        });
+    }).catch(err => {
+        console.error('Erro ao copiar: ', err);
+    });
+}
+
+function inativarPagamento(btn, invoiceId) {
+    const table = $('#financialTable').DataTable();
+    const row = $(btn).closest('tr');
+
+    Swal.fire({
+        title: 'Inativar Cobrança?',
+        text: "A fatura será cancelada e o QR Code excluído.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Sim, inativar',
+        cancelButtonText: 'Voltar',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+            return fetch(`/api/finance/invoice/${invoiceId}/cancel`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.getElementById('ttk').value 
+                }
+            })
+            .then(response => response.json())
+            .catch(error => {
+                Swal.showValidationMessage(`Erro: ${error}`);
+            });
+        }
+    }).then((result) => {
+        // No seu padrão, o result.value contém o ApiResponse retornado pelo preConfirm
+        const response = result.value;
+
+        if (response && response.code === 'SUCCESS') {
+            // Remove a linha do DataTables de forma reativa
+            table.row(row).remove().draw(false);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: response.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } else if (response) {
+            Swal.fire('Erro!', response.message || 'Erro ao processar solicitação', 'error');
         }
     });
 }

@@ -47,9 +47,19 @@ class Invoice(db.Model):
     payment_method = db.Column(db.String(20)) # 'pix' ou 'boleto'
     external_id = db.Column(db.String(100)) # ID da transação no Gateway (Mercado Pago, Asaas, etc)
     pix_copy_paste = db.Column(db.Text) # Código Pix Copia e Cola
-    
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    external_id = db.Column(db.String(100), unique=True, nullable=True) # ID do Asaas/MercadoPago
+    pix_copy_paste = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    update_at = db.Column(
+        db.DateTime, 
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+
+
     # Relacionamentos
     student = db.relationship('Student', backref='invoices')
     plan = db.relationship('Plan')

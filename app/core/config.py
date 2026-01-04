@@ -130,6 +130,7 @@ class Config(BaseConfig):
         self.SQLALCHEMY_DATABASE_URI = self.get_env_or_raise('SQLALCHEMY_DATABASE_URI')
         self.CELERY_BROKER_URL = self.get_env_or_raise('CELERY_BROKER_URL')
         self.CELERY_RESULT_BACKEND = self.get_env_or_raise('CELERY_RESULT_BACKEND')
+        self.CELERY_RESULT_EXPIRES = 1800
         self.SQLALCHEMY_TRACK_MODIFICATIONS = False
         self.MAX_CONTENT_LENGTH = 10 * 1024 * 1024
         self.DROPZONE_ALLOWED_FILE_CUSTOM = True
@@ -176,6 +177,10 @@ class Config(BaseConfig):
         # FLASK_EXECUTOR
         self.CUSTOM_EXECUTOR_TYPE = 'thread'
         self.CUSTOM_EXECUTOR_MAX_WORKERS = 5
+
+        self.PIX_CHAVE = self.get_env_or_raise('PIX_CHAVE')
+        self.PIX_NOME = self.get_env_or_raise('PIX_NOME')
+        self.PIX_CIDADE = self.get_env_or_raise('PIX_CIDADE')
 
     
     @staticmethod

@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+import time
 from app import  db
 from celery_worker import celery
 from app.models.pages.students import Student
@@ -43,3 +46,31 @@ def generate_monthly_invoices_task():
     if count == 0 and errors > 0:
         return f"0 faturas geradas. {errors} alunos foram ignorados por estarem sem plano vinculado."
     return f"Sucesso! {count} faturas geradas."
+
+
+@celery.task(name='app.tasks.finance_tasks.cleanup_old_pix_files')
+def cleanup_old_pix_files():
+    """Remove arquivos de QR Code com mais de 24 horas de criação"""
+    root_dir = Path.cwd() / 'app'
+    folder_path = os.path.join(root_dir, 'static', 'downloads', 'pix')
+    
+    if not os.path.exists(folder_path):
+        return "Pasta não encontrada."
+
+    now = time.time()
+    cutoff = now - (24 * 60 * 60) # 24 horas em segundos
+    count = 0
+
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        
+        # Verifica se é um arquivo e se a data de modificação é anterior ao cutoff
+        if os.path.isfile(file_path):
+            if os.path.getmtime(file_path) < cutoff:
+                try:
+                    os.remove(file_path)
+                    count += 1
+                except Exception as e:
+                    print(f"Erro ao deletar {filename}: {e}")
+
+    return f"Limpeza concluída. {count} arquivos removidos."

@@ -1,9 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import os
+from pathlib import Path
 
 from sqlalchemy import func
 from app.models.pages.students import Student
 from app.models.pages.finance import Invoice
 from app import db
+from app.utils.api_response import ApiResponse
 
 class FinanceService:
 
@@ -48,22 +51,22 @@ class FinanceService:
 
     @staticmethod
     def get_all_invoices():
-        """Retorna todas as faturas para o DataTables"""
-        invoices = Invoice.query.join(Student).all()
+        """Retorna faturas ativas (não canceladas) usando List Comprehension"""
+        # Filtra para trazer apenas faturas que não foram inativadas
+        invoices = Invoice.query.join(Student).filter(Invoice.status != 'cancelled').all()
         
-        data = []
-        for inv in invoices:
-            # A lógica de 'financial_status' que criamos no Model faz o trabalho duro
-            data.append({
-                "id": inv.id,
-                "student_id": inv.student_id,
-                "student_name": inv.student.full_name,
-                "plan_name": inv.plan.name if inv.plan else "N/A",
-                "due_date": inv.due_date.strftime('%Y-%m-%d'),
-                "amount": float(inv.amount),
-                "status": inv.status,
-                "financial_status": inv.financial_status # 'em_dia', 'atrasado' ou 'inadimplente'
-            })
+        # List Comprehension para construir os dados do DataTables de forma performática
+        data = [{
+            "id": inv.id,
+            "student_id": inv.student_id,
+            "student_name": inv.student.full_name,
+            "plan_name": inv.plan.name if inv.plan else "N/A",
+            "due_date": inv.due_date.strftime('%d/%m/%Y'), # Formato brasileiro para o DataTables
+            "amount": float(inv.amount),
+            "status": inv.status,
+            "financial_status": inv.financial_status
+        } for inv in invoices]
+        
         return data
 
     @staticmethod
@@ -115,3 +118,44 @@ class FinanceService:
         except Exception as e:
             db.session.rollback()
             return False, f"Erro ao processar: {str(e)}"
+        
+    @staticmethod
+    def delete_pix_file():
+        """Localiza e deleta todos os arquivos PNG relacionados a um invoice_id específico"""
+        root_dir = Path.cwd() / 'app'
+        folder_path = os.path.join(root_dir, 'static', 'downloads', 'pix')
+        
+        if os.path.exists(folder_path):
+            # Procuramos por qualquer arquivo que comece com 'pix_ID_'
+            for filename in os.listdir(folder_path):
+                    
+                    try:
+                        os.remove(os.path.join(folder_path, filename))
+                        print(f"Arquivo {filename} deletado após baixa manual.")
+                    except Exception as e:
+                        print(f"Erro ao deletar arquivo após baixa: {e}")
+
+    @staticmethod
+    def cancel_payment(invoice_id=None):
+        """Cancela uma fatura paga, revertendo seu status para pendente"""
+        try:
+            fatura = Invoice.query.get(invoice_id)
+            if not fatura:
+                return ApiResponse.error("Fatura não encontrada", 404)
+
+            # 1. Atualiza o status no banco
+            fatura.status = 'cancelled'
+            fatura.updated_at = datetime.now(timezone.utc)
+            
+            # 2. Chama a função de limpeza que criamos (importada da sua task)
+            FinanceService.delete_pix_file()
+            
+            db.session.commit()
+            
+            return ApiResponse.success(
+                message="Pagamento inativado e QR Code removido com sucesso."
+            )
+            
+        except Exception as e:
+            db.session.rollback()
+            return ApiResponse.error(f"Erro ao inativar: {str(e)}", 500)

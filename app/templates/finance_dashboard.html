@@ -7,25 +7,90 @@
 <input type="hidden" name="ttk" id="ttk" value="{{ csrf_token() }}">
 <style>
     /* ... Seus estilos permanecem iguais ... */
-    .badge-finance { padding: 0.5em 0.8em; border-radius: 50px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-    .status-paid { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
-    .status-late { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-    .status-default { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; animation: pulse-red 2s infinite; }
-
-    @keyframes pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    .badge-finance {
+        padding: 0.5em 0.8em;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
 
-    .btn-action-finance { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: transform 0.2s; }
-    .btn-action-finance:hover { transform: translateY(-2px); }
-    .card { border-radius: 12px; }
-    .card h6 { text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem; font-weight: 700; }
-    .bg-primary { background: linear-gradient(45deg, #0d6efd, #0a58ca) !important; }
-    .bg-success { background: linear-gradient(45deg, #198754, #146c43) !important; }
-    .bg-warning { background: linear-gradient(45deg, #ffc107, #e0a800) !important; }
-    .bg-danger { background: linear-gradient(45deg, #dc3545, #bb2d3b) !important; }
+    .status-paid {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+    }
+
+    .status-late {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    .status-default {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+        animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+        0% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+
+    .btn-action-finance {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+
+    .btn-action-finance:hover {
+        transform: translateY(-2px);
+    }
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .card h6 {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .bg-primary {
+        background: linear-gradient(45deg, #0d6efd, #0a58ca) !important;
+    }
+
+    .bg-success {
+        background: linear-gradient(45deg, #198754, #146c43) !important;
+    }
+
+    .bg-warning {
+        background: linear-gradient(45deg, #ffc107, #e0a800) !important;
+    }
+
+    .bg-danger {
+        background: linear-gradient(45deg, #dc3545, #bb2d3b) !important;
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -35,7 +100,8 @@
                 <div class="card-body">
                     <h6 class="text-white-50">Receita do Mês</h6>
                     <h3 class="fw-bold mb-0">
-                        R$ {{ "{:,.2f}".format(data.monthly_revenue | default(0)).replace(',', 'v').replace('.', ',').replace('v', '.') }}
+                        R$ {{ "{:,.2f}".format(data.monthly_revenue | default(0)).replace(',', 'v').replace('.',
+                        ',').replace('v', '.') }}
                     </h3>
                 </div>
             </div>
@@ -46,7 +112,8 @@
                 <div class="card-body">
                     <h6 class="text-white-50">Total Recebido</h6>
                     <h3 class="fw-bold mb-0">
-                        R$ {{ "{:,.2f}".format(data.total_paid | default(0)).replace(',', 'v').replace('.', ',').replace('v', '.') }}
+                        R$ {{ "{:,.2f}".format(data.total_paid | default(0)).replace(',', 'v').replace('.',
+                        ',').replace('v', '.') }}
                     </h3>
                 </div>
             </div>
@@ -57,7 +124,8 @@
                 <div class="card-body">
                     <h6 class="text-dark-50">Atrasados</h6>
                     <h3 class="fw-bold mb-0">
-                        R$ {{ "{:,.2f}".format(data.total_late | default(0)).replace(',', 'v').replace('.', ',').replace('v', '.') }}
+                        R$ {{ "{:,.2f}".format(data.total_late | default(0)).replace(',', 'v').replace('.',
+                        ',').replace('v', '.') }}
                     </h3>
                 </div>
             </div>
@@ -105,7 +173,7 @@
                         </tr>
                     </thead>
                     <tbody id="financialTableBody">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -133,6 +201,38 @@
                     <img id="qrCodeImg" src="" class="img-fluid border p-2 mb-2" style="max-width: 200px;">
                     <p class="small text-muted">Copia e Cola disponível abaixo</p>
                     <input type="text" id="pixCodeText" class="form-control form-control-sm text-center" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="pixModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"> 
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-qrcode me-2"></i>Pagamento PIX</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body text-center p-4"> <div class="mx-auto mb-4" 
+                     style="width: 280px; height: 280px; border: 1px solid #dee2e6; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
+                    
+                    <iframe id="qrCodeFrame" src="" frameborder="0" scrolling="no"
+                        style="width: 100%; height: 100%; border: none; display: block;">
+                    </iframe>
+                </div>
+
+                <div class="px-3"> <p class="fw-bold text-dark mb-2">Pix Copia e Cola:</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="pixCopiaCola" class="form-control" readonly style="background-color: #f8f9fa;">
+                        <button class="btn btn-primary" type="button" onclick="copyPixCode()">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                    
+                    <div class="alert alert-warning py-2 mb-0" style="font-size: 0.85rem; border-left: 4px solid #ffc107;">
+                        <i class="fas fa-info-circle me-1"></i> Após o pagamento, envie o comprovante para o Studio.
+                    </div>
                 </div>
             </div>
         </div>

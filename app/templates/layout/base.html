@@ -32,14 +32,38 @@
 
         /* Sidebar Customizada */
         .sidebar {
-            min-height: 100vh;
+            height: 100vh; /* Força a altura total da tela */
             background: var(--studio-dark);
             color: white;
             width: 260px;
             position: fixed;
             z-index: 1000;
-            transition: all 0.3s;
+            display: flex;
+            flex-direction: column; /* Organiza topo, meio e fundo */
             border-right: 4px solid var(--studio-cyan);
+        }
+
+        /* Área dos links com scroll independente */
+        .sidebar-nav-container {
+            flex-grow: 1;
+            overflow-y: auto; /* Cria o scroll se o menu for grande */
+            padding: 10px 0;
+        }
+
+        /* Esconder a barra de rolagem para um visual mais limpo (opcional) */
+        .sidebar-nav-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-thumb {
+            background: var(--studio-cyan);
+            border-radius: 10px;
+        }
+
+        /* Rodapé fixo (Onde fica o Sair) */
+        .sidebar-footer {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .sidebar-header {
@@ -148,75 +172,43 @@
 <body>
 
     {% if current_user.is_authenticated %}
-    <div class="sidebar d-flex flex-column shadow">
+    <div class="sidebar shadow">
         <div class="sidebar-header">
             <img src="{{ url_for('static', filename='img/logo_fun.jpg') }}" class="sidebar-logo shadow-sm">
             <h5 class="mb-0 fw-bold text-white">Studio Fun</h5>
             <small style="color: var(--studio-neon); font-size: 0.7rem;">MOVIMENTO CURA</small>
         </div>
 
-        <div class="p-3">
-            <ul class="nav nav-pills flex-column mb-auto">
+        <div class="sidebar-nav-container">
+            <ul class="nav nav-pills flex-column">
                 <li class="nav-item">
-                    <a href="{{ url_for('main.index') }}"
-                        class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
+                    <a href="{{ url_for('main.index') }}" class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
                         <i class="fas fa-th-large"></i> Dashboard
                     </a>
                 </li>
 
                 <div class="section-divider">CADASTROS</div>
-
-                <li>
-                    <a href="{{ url_for('main.page_students') }}"
-                        class="nav-link {% if 'student' in request.endpoint %}active{% endif %}">
-                        <i class="fas fa-users"></i> Alunos
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('main.page_activities') }}"
-                        class="nav-link {% if 'activit' in request.endpoint %}active{% endif %}">
-                        <i class="fas fa-dumbbell"></i> Planos de Treino
-                    </a>
-                </li>
+                <li><a href="{{ url_for('main.page_students') }}" class="nav-link {% if 'student' in request.endpoint %}active{% endif %}"><i class="fas fa-users"></i> Alunos</a></li>
+                <li><a href="{{ url_for('main.page_activities') }}" class="nav-link {% if 'activit' in request.endpoint %}active{% endif %}"><i class="fas fa-dumbbell"></i> Planos</a></li>
 
                 <div class="section-divider">GESTÃO</div>
+                <li><a href="{{ url_for('main.page_schedules') }}" class="nav-link {% if 'schedule' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-alt"></i> Turmas</a></li>
+                <li><a href="{{ url_for('main.page_attendance') }}" class="nav-link {% if 'attendance' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-check"></i> Presença</a></li>
+                <li><a href="{{ url_for('main.page_enrollments') }}" class="nav-link {% if 'enroll' in request.endpoint %}active{% endif %}"><i class="fas fa-signature"></i> Matrículas</a></li>
 
-                <li>
-                    <a href="{{ url_for('main.page_schedules') }}"
-                        class="nav-link {% if 'schedule' in request.endpoint %}active{% endif %}">
-                        <i class="fas fa-calendar-alt"></i> Turmas e Horários
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ url_for('main.page_attendance') }}"
-                        class="nav-link {% if 'attendance' in request.endpoint %}active{% endif %}">
-                        <i class="fas fa-calendar-check"></i> Presença
-                    </a>
-                </li>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('main.page_enrollments') }}"
-                        class="nav-link {% if 'enroll' in request.endpoint %}active{% endif %}">
-                        <i class="fas fa-signature"></i> Matrículas
-                    </a>
-                </li>
+                <div class="section-divider">FINANCEIRO</div>
+                <li><a href="{{ url_for('main.finance_dashboard') }}" class="nav-link {% if 'finance' in request.endpoint %}active{% endif %}"><i class="fas fa-file-invoice-dollar"></i> Contas a Receber</a></li>
             </ul>
         </div>
 
-        <div class="mt-auto p-3">
-            <hr class="bg-light opacity-25">
+        <div class="sidebar-footer">
             <div class="dropdown">
-                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle user-badge"
-                    data-bs-toggle="dropdown">
-                    <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=22aeb1&color=fff"
-                        alt="" width="32" height="32" class="rounded-circle me-2">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle user-badge" data-bs-toggle="dropdown">
+                    <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=22aeb1&color=fff" width="32" height="32" class="rounded-circle me-2">
                     <span class="small fw-bold">{{ current_user.username }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark shadow">
-                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i
-                                class="fas fa-sign-out-alt me-2 text-danger"></i>Sair do Sistema</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2 text-danger"></i>Sair do Sistema</a></li>
                 </ul>
             </div>
         </div>

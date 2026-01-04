@@ -10,6 +10,7 @@ def make_celery(app):
     celery.conf.update(
         broker_url=config.CELERY_BROKER_URL,
         result_backend=config.CELERY_RESULT_BACKEND,
+        result_expires=config.CELERY_RESULT_EXPIRES,
         timezone="America/Sao_Paulo",
         enable_utc=True,
         
