@@ -16,9 +16,10 @@ def api_list_students():
     data = AttendanceService.list_students_for_class(s_id, date)
     
     # Adicionamos a info de bloqueio em cada aluno da lista
-    from app.models.pages.academy import Student
+    from app.models.pages.students import Student
     for student_data in data:
-        student = Student.query.get(student_data['id'])
+        print(f"DEBUG: Dados recebidos: {student_data}")
+        student = Student.query.get(student_data['student_id'])
         student_data['is_blocked'] = student.is_blocked if student else False
         
     return ApiResponse.success(data=data)
@@ -69,7 +70,7 @@ def api_mark_attendance():
     
     if form.validate_on_submit():
         # --- NOVA REGRA DE BLOQUEIO ---
-        from app.models.pages.academy import Student # Importe o modelo Student
+        from app.models import Student # Importe o modelo Student
         student = Student.query.get(form.student_id.data)
         
         if student and student.is_blocked: # Usando a @property que criamos no Model

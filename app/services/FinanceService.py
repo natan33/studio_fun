@@ -159,3 +159,54 @@ class FinanceService:
         except Exception as e:
             db.session.rollback()
             return ApiResponse.error(f"Erro ao inativar: {str(e)}", 500)
+        
+    
+    @staticmethod
+    def get_financial_summary():
+        """Calcula os totais para os cards do dashboard usando list compression"""
+        # Pega todas as faturas que não foram canceladas
+        invoices = Invoice.query.filter(Invoice.status != 'cancelled').all()
+
+        # Cálculos usando compressão de lista
+        # 1. Receita total prevista (tudo que não foi cancelado)
+        monthly_revenue = sum([float(i.amount) for i in invoices])
+        
+        # 2. Total que já caiu na conta
+        total_paid = sum([float(i.amount) for i in invoices if i.status == 'paid'])
+        
+        # 3. Total de faturas pendentes que já venceram
+        total_late = sum([float(i.amount) for i in invoices if i.status == 'pending' and i.financial_status == 'late'])
+
+        # 4. Contagem de alunos inadimplentes (ex: financial_status == 'inadimplente')
+        # Aqui contamos IDs de alunos únicos que estão nesse estado
+        total_default = len(list(set([i.student_id for i in invoices if i.financial_status == 'defaulter'])))
+
+        data = {
+            "monthly_revenue": monthly_revenue,
+            "total_paid": total_paid,
+            "total_late": total_late,
+            "total_default": total_default
+        }
+
+        return data
+    
+    @staticmethod
+    def reverter_baixa(invoice_id=None):
+        try:
+            fatura = Invoice.query.get(invoice_id)
+            if not fatura:
+                return ApiResponse.error("Fatura não encontrada")
+            
+            if fatura.status == 'cancelled':
+                return ApiResponse.error("Não é possível estornar uma fatura cancelada.")
+
+            # Reverte o status para pendente
+            fatura.status = 'pending'
+            fatura.updated_at = db.func.now()
+            
+            db.session.commit()
+            
+            return ApiResponse.success(message="Baixa revertida! A fatura voltou para Pendente.")
+        except Exception as e:
+            db.session.rollback()
+            return ApiResponse.error(str(e))

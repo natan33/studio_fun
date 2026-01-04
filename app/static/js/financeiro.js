@@ -10,8 +10,12 @@ $(document).ready(function () {
             { "data": "plan_name" },
             {
                 "data": "due_date",
-                "render": function (data) {
-                    return moment(data).format('DD/MM/YYYY');
+                // Informe o formato de entrada 'DD/MM/YYYY' que definimos no Service
+                render: function (data, type, row) {
+                    if (data) {
+                        return moment(data, 'DD/MM/YYYY').format('DD/MM/YYYY');
+                    }
+                    return '';
                 }
             },
             {
@@ -43,7 +47,13 @@ $(document).ready(function () {
                     let buttons = `<div class="d-flex justify-content-center gap-2">`;
 
                     // Botão de Baixa Manual (só aparece se NÃO estiver pago)
-                    if (row.status !== 'paid') {
+                    if (row.status === 'paid') {
+                        // Se já está pago, mostra botão de ESTORNAR (reverter)
+                        buttons += `
+                <button class="btn btn-sm btn-outline-secondary" onclick="reverterBaixa(this, ${row.id})" title="Estornar Baixa">
+                    <i class="fas fa-undo"></i>
+                </button>`;
+                    } else if (row.status !== 'paid') {
                         buttons += `
                     <button class="btn btn-success btn-action-finance" 
                             onclick="confirmManualPayment(${row.id}, '${row.student_name}')" 
@@ -51,6 +61,7 @@ $(document).ready(function () {
                         <i class="fas fa-check"></i>
                     </button>`;
                     }
+
 
                     // Botão de Gerar PIX/Cobrança
                     buttons += `
@@ -122,10 +133,50 @@ $(document).ready(function () {
         const diff = hoje.diff(vencimento, 'days');
         return diff > 0 ? diff : 0;
     }
+
+    $('#filterStatus').on('change', function () {
+        const val = $(this).val();
+        // Busca exata para evitar conflitos de nomes
+        table.column(5).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
+});
+
+
+function loadFinancialSummary() {
+    fetch('/api/finance/summary', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.code === 'SUCCESS') {
+                const data = result.data;
+
+                // Função interna para formatar moeda R$
+                const formatCurrency = (value) => {
+                    return new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                    }).format(value);
+                };
+
+                // Injeta os valores nos IDs correspondentes
+                document.getElementById('card-monthly-revenue').innerText = formatCurrency(data.monthly_revenue);
+                document.getElementById('card-total-paid').innerText = formatCurrency(data.total_paid);
+                document.getElementById('card-total-late').innerText = formatCurrency(data.total_late);
+                document.getElementById('card-total-default').innerText = data.total_default;
+            }
+        })
+        .catch(error => console.error('Erro ao carregar resumo financeiro:', error));
+}
+
+// Chame a função quando a página carregar
+$(document).ready(function () {
+    loadFinancialSummary();
 });
 
 function triggerInvoiceGeneration() {
-
+    const table = $('#financialTable').DataTable();
     const ttk = document.getElementById('ttk').value;
 
     Swal.fire({
@@ -153,7 +204,9 @@ function triggerInvoiceGeneration() {
                 .then(data => {
                     if (data.code === 'SUCCESS') {
                         Swal.fire('Sucesso!', data.message, 'success').then(() => {
-                            window.location.reload();
+                            loadFinancialSummary();
+                            table.ajax.reload(null, false); // false para manter a página atual
+
                         });
                     } else {
                         Swal.fire('Erro!', data.message, 'error');
@@ -168,6 +221,7 @@ function triggerInvoiceGeneration() {
 
 function confirmManualPayment(invoiceId, studentName) {
     const ttk = document.getElementById('ttk').value;
+    const table = $('#financialTable').DataTable();
 
     Swal.fire({
         title: 'Confirmar Pagamento?',
@@ -195,7 +249,7 @@ function confirmManualPayment(invoiceId, studentName) {
                             if (typeof table !== 'undefined') {
                                 table.ajax.reload(null, false); // false para manter a página atual
                             }
-                            window.location.reload(); // Recarrega para atualizar os cards de resumo
+                            loadFinancialSummary(); // Recarrega para atualizar os cards de resumo
                         });
                     } else {
                         Swal.fire('Erro!', data.message, 'error');
@@ -350,15 +404,15 @@ function inativarPagamento(btn, invoiceId) {
         preConfirm: () => {
             return fetch(`/api/finance/invoice/${invoiceId}/cancel`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': document.getElementById('ttk').value 
+                    'X-CSRFToken': document.getElementById('ttk').value
                 }
             })
-            .then(response => response.json())
-            .catch(error => {
-                Swal.showValidationMessage(`Erro: ${error}`);
-            });
+                .then(response => response.json())
+                .catch(error => {
+                    Swal.showValidationMessage(`Erro: ${error}`);
+                });
         }
     }).then((result) => {
         // No seu padrão, o result.value contém o ApiResponse retornado pelo preConfirm
@@ -367,6 +421,8 @@ function inativarPagamento(btn, invoiceId) {
         if (response && response.code === 'SUCCESS') {
             // Remove a linha do DataTables de forma reativa
             table.row(row).remove().draw(false);
+
+            loadFinancialSummary();
 
             Swal.fire({
                 icon: 'success',
@@ -377,6 +433,53 @@ function inativarPagamento(btn, invoiceId) {
             });
         } else if (response) {
             Swal.fire('Erro!', response.message || 'Erro ao processar solicitação', 'error');
+        }
+    });
+}
+
+function reverterBaixa(btn, invoiceId) {
+    const table = $('#financialTable').DataTable();
+    const row = $(btn).closest('tr');
+
+    Swal.fire({
+        title: 'Estornar Pagamento?',
+        text: "A fatura voltará para o status Pendente.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#6c757d', // Cinza para estorno
+        confirmButtonText: 'Sim, estornar',
+        cancelButtonText: 'Voltar',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+            return fetch(`/api/finance/invoice/${invoiceId}/revert`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.getElementById('ttk').value
+                }
+            })
+                .then(response => response.json())
+                .catch(error => Swal.showValidationMessage(`Erro: ${error}`));
+        }
+    }).then((result) => {
+        const response = result.value;
+        if (response && response.code === 'SUCCESS') {
+            // Em vez de remover a linha, vamos apenas recarregar os dados da linha
+            // ou recarregar a tabela para atualizar as badges e botões
+            table.ajax.reload(null, false);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Estornado!',
+                text: response.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            // Atualiza os cards de resumo lá no topo
+            loadFinancialSummary();
+        } else if (response) {
+            Swal.fire('Erro!', response.message, 'error');
         }
     });
 }

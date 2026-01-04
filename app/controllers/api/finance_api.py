@@ -9,9 +9,17 @@ def api_finance_list():
     from app.services.FinanceService import FinanceService
     service = FinanceService()
     data = service.get_all_invoices()
+    print(f"DEBUG: Dados de faturas retornados: {data}")
     return ApiResponse.success(data=data)
 
     
+@api.route('/api/finance/summary', methods=['GET'])
+@login_required
+def get_financial_summary():
+    service = FinanceService()
+    data = service.get_financial_summary()
+    return ApiResponse.success(data=data)
+
 
 @api.route('/api/finance/generate-mass', methods=['POST'])
 @login_required
@@ -98,3 +106,9 @@ def get_task_status(task_id):
 def cancel_payment(invoice_id):
     # O Service já retorna um objeto ApiResponse pronto
     return FinanceService.cancel_payment(invoice_id)
+
+
+@api.route('/api/finance/invoice/<int:invoice_id>/revert', methods=['POST'])
+@login_required
+def revert_invoice(invoice_id):
+    return FinanceService.reverter_baixa(invoice_id)

@@ -10,9 +10,9 @@ import calendar
 
 @celery.task
 def generate_monthly_invoices_task():
-    """Gera faturas para todos os alunos ativos no mês atual"""
+    """Gera faturas para todos os alunos ativos no mês atual, ignorando as canceladas"""
     hoje = datetime.now()
-    # Define o vencimento para o dia 10 do mês atual (exemplo)
+    # Define o vencimento para o dia 10 do mês atual
     due_date = hoje.replace(day=10).date()
     
     students = Student.query.filter_by(is_active=True).all()
@@ -23,29 +23,32 @@ def generate_monthly_invoices_task():
         if not student.plan_id:
             errors += 1
             continue
-        # Evita gerar faturas duplicadas para o mesmo mês/ano
+
+        # Buscamos faturas que NÃO estejam canceladas (usando 'cancel')
         existing = Invoice.query.filter(
             Invoice.student_id == student.id,
+            Invoice.status != 'cancelled',  # Padronizado para seu banco
             db.extract('month', Invoice.due_date) == hoje.month,
             db.extract('year', Invoice.due_date) == hoje.year
         ).first()
         
-        if not existing and student.plan_id:
+        # Se não existir uma fatura ativa (pending ou paid), geramos uma nova
+        if not existing:
             plan = Plan.query.get(student.plan_id)
-            new_invoice = Invoice(
-                student_id=student.id,
-                plan_id=plan.id,
-                amount=plan.price,
-                due_date=due_date,
-                status='pending'
-            )
-            db.session.add(new_invoice)
-            count += 1
+            if plan:
+                new_invoice = Invoice(
+                    student_id=student.id,
+                    plan_id=plan.id,
+                    amount=plan.price,
+                    due_date=due_date,
+                    status='pending'  # Padronizado para seu banco
+                )
+                db.session.add(new_invoice)
+                count += 1
             
     db.session.commit()
-    if count == 0 and errors > 0:
-        return f"0 faturas geradas. {errors} alunos foram ignorados por estarem sem plano vinculado."
-    return f"Sucesso! {count} faturas geradas."
+    return f"Sucesso! {count} faturas geradas. {errors} alunos sem plano ignorados."
+
 
 
 @celery.task(name='app.tasks.finance_tasks.cleanup_old_pix_files')
