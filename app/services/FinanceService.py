@@ -60,6 +60,7 @@ class FinanceService:
             "id": inv.id,
             "student_id": inv.student_id,
             "student_name": inv.student.full_name,
+            "student_phone": inv.student.phone,
             "plan_name": inv.plan.name if inv.plan else "N/A",
             "due_date": inv.due_date.strftime('%d/%m/%Y'), # Formato brasileiro para o DataTables
             "amount": float(inv.amount),

@@ -73,11 +73,14 @@ $(document).ready(function () {
 
                     // Botão de WhatsApp (Substituindo o btn-msg que você tinha)
                     buttons += `
-                <button class="btn btn-secondary btn-action-finance" 
-                        onclick="sendWhatsApp('${row.student_phone}', '${row.student_name}')" 
-                        title="Enviar Mensagem">
-                    <i class="fab fa-whatsapp"></i>
-                </button>`;
+            <div class="btn-group">
+                
+            <button class="btn btn-sm btn-success" 
+                    onclick="processarCobranca('${row.student_name}', '${row.student_phone}', '${row.due_date}', ${row.amount})" 
+                    title="Copiar PIX e Abrir WhatsApp">
+                <i class="fab fa-whatsapp"></i>
+            </button>
+                </div>`;
 
                     // Botão de Inativar Pagamento (só aparece se NÃO estiver pago)
                     //if (row.status !== 'paid') {
@@ -482,4 +485,75 @@ function reverterBaixa(btn, invoiceId) {
             Swal.fire('Erro!', response.message, 'error');
         }
     });
+}
+
+function processarCobranca(nome, telefone, vencimento, valor) {
+    const minhaChavePix = "SUA_CHAVE_AQUI"; // Coloque sua chave real aqui
+    
+    // 1. Tenta copiar a chave PIX para o seu computador/celular primeiro
+    navigator.clipboard.writeText(minhaChavePix).then(() => {
+        
+        // Se a cópia deu certo, agora preparamos o WhatsApp
+        enviarWhatsappComPix(nome, telefone, vencimento, valor, minhaChavePix);
+        
+        // Notificação rápida e discreta (Toast) para não atrapalhar a abertura da aba
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: 'success',
+            title: 'PIX copiado e WhatsApp abrindo...'
+        });
+
+    }).catch(err => {
+        // Se falhar a cópia (raro), abre o WhatsApp mesmo assim
+        console.error('Erro ao copiar PIX: ', err);
+        enviarWhatsappComPix(nome, telefone, vencimento, valor, minhaChavePix);
+    });
+}
+
+// Função auxiliar para montar a URL e abrir
+function enviarWhatsappComPix(nome, telefone, vencimento, valor, chave) {
+    if (!telefone || telefone === 'None' || telefone === '') {
+        Swal.fire('Atenção', 'Cadastro do aluno sem telefone.', 'warning');
+        return;
+    }
+
+    let foneLimpo = telefone.replace(/\D/g, '');
+    if (foneLimpo.length <= 11) foneLimpo = '55' + foneLimpo;
+
+    const valorFormatado = new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+    }).format(valor);
+    
+    // Mensagem focada em texto puro e formatação de negrito/itálico
+    const mensagem = [
+        `*STUDIO FUN - GESTAO FINANCEIRA*`,
+        '',
+        `Prezado(a) *${nome}*,`,
+        `Esperamos que esteja bem.`,
+        '',
+        `Seguem os detalhes da sua mensalidade atual:`,
+        '',
+        `*Vencimento:* ${vencimento}`,
+        `*Valor:* ${valorFormatado}`,
+        '',
+        `Para sua comodidade, utilize a chave PIX (Copia e Cola) abaixo para o pagamento:`,
+        '',
+        `${chave}`,
+        '',
+        `_Caso o pagamento já tenha sido identificado, por favor, desconsidere este aviso._`,
+        '',
+        `Atenciosamente,`,
+        `*Equipe Studio Fun*`
+    ].join('\n');
+
+    // O encodeURIComponent cuidará apenas dos espaços e quebras de linha agora
+    const url = `https://wa.me/${foneLimpo}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
 }

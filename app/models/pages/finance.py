@@ -48,8 +48,7 @@ class Invoice(db.Model):
     external_id = db.Column(db.String(100)) # ID da transação no Gateway (Mercado Pago, Asaas, etc)
     pix_copy_paste = db.Column(db.Text) # Código Pix Copia e Cola
 
-    external_id = db.Column(db.String(100), unique=True, nullable=True) # ID do Asaas/MercadoPago
-    pix_copy_paste = db.Column(db.Text, nullable=True)
+    
 
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     update_at = db.Column(
@@ -78,6 +77,41 @@ class Invoice(db.Model):
             return 'atrasado'
             
         return 'pendente'
+    
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+class Expense(db.Model):
+    __tablename__ = 'expenses'
+    __table_args__ = {"schema": "finance"}
+    
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(150), nullable=False) # Ex: Aluguel, Luz, Professor X
+    category = db.Column(db.String(50), nullable=False)    # Ex: Fixo, Variável, Pessoal
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    due_date = db.Column(db.Date, nullable=False)
+    payment_date = db.Column(db.Date, nullable=True)       # Data em que foi pago de fato
+    status = db.Column(db.String(20), default='pending')   # 'pending' ou 'paid'
+    observation = db.Column(db.Text, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "description": self.description,
+            "category": self.category,
+            "amount": float(self.amount),
+            "due_date": self.due_date.strftime('%d/%m/%Y'),
+            "payment_date": self.payment_date.strftime('%d/%m/%Y') if self.payment_date else None,
+            "status": self.status
+        }
     
     def save(self):
         db.session.add(self)
