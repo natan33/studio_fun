@@ -10,3 +10,4 @@ from . import schedules_api
 from . import activities_api
 from . import attendance_api
 from . import finance_api
+from . import expense_api
