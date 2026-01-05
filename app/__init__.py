@@ -10,7 +10,7 @@ from flask import Flask, redirect, render_template, request, session, url_for, j
 import requests
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, login_required
+from flask_login import LoginManager, current_user, login_required
 from flask_mail import Mail
 from flask_caching import Cache
 from flask_wtf.csrf import CSRFProtect
@@ -84,5 +84,23 @@ def create_app(config_name: str):
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(main_blueprint)
     app.register_blueprint(api_blueprint)
+
+
+    @app.before_request
+    def check_timeout():
+        if current_user.is_authenticated:
+            now = time.time()
+            last_activity = session.get('last_activity', now)
+            timeout_duration = app.config.get('PERMANENT_SESSION_LIFETIME', 900).total_seconds()
+
+            if now - last_activity > timeout_duration:
+                from flask_login import logout_user
+                logout_user()
+                return redirect(url_for('auth.login'))
+
+            session['last_activity'] = now
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(minutes=15)
+        session.modified = True
 
     return app

@@ -173,32 +173,45 @@ class FinanceService:
     
     @staticmethod
     def get_financial_summary():
-        """Calcula os totais para os cards do dashboard usando list compression"""
-        # Pega todas as faturas que não foram canceladas
-        invoices = Invoice.query.filter(Invoice.status != 'cancelled').all()
+        try:
+            # Definir o início e fim do mês atual para os cards de Receita
+            today = datetime.now()
+            first_day = today.replace(day=1, hour=0, minute=0, second=0)
 
-        # Cálculos usando compressão de lista
-        # 1. Receita total prevista (tudo que não foi cancelado)
-        monthly_revenue = sum([float(i.amount) for i in invoices])
-        
-        # 2. Total que já caiu na conta
-        total_paid = sum([float(i.amount) for i in invoices if i.status == 'paid'])
-        
-        # 3. Total de faturas pendentes que já venceram
-        total_late = sum([float(i.amount) for i in invoices if i.status == 'pending' and i.financial_status == 'late'])
+            # 1. Receita total prevista (Mês Atual - Não cancelada)
+            monthly_revenue = db.session.query(func.sum(Invoice.amount)).filter(
+                Invoice.status != 'cancelled',
+                Invoice.due_date >= first_day
+            ).scalar() or 0
 
-        # 4. Contagem de alunos inadimplentes (ex: financial_status == 'inadimplente')
-        # Aqui contamos IDs de alunos únicos que estão nesse estado
-        total_default = len(list(set([i.student_id for i in invoices if i.financial_status == 'defaulter'])))
+            # 2. Total que já caiu na conta (Total histórico ou mensal, conforme sua preferência)
+            total_paid = db.session.query(func.sum(Invoice.amount)).filter(
+                Invoice.status == 'paid'
+            ).scalar() or 0
 
-        data = {
-            "monthly_revenue": monthly_revenue,
-            "total_paid": total_paid,
-            "total_late": total_late,
-            "total_default": total_default
-        }
+            # 3. Total de faturas pendentes que já venceram (Atrasadas)
+            total_late = db.session.query(func.sum(Invoice.amount)).filter(
+                Invoice.status == 'pending',
+                Invoice.due_date < today # Vencimento menor que agora
+            ).scalar() or 0
 
-        return data
+            # 4. Contagem de alunos inadimplentes únicos
+            # Filtra faturas onde o status do financeiro é 'defaulter'
+            total_default = db.session.query(func.count(func.distinct(Invoice.student_id))).filter(
+                Invoice.financial_status == 'defaulter'
+            ).scalar() or 0
+
+            data = {
+                "monthly_revenue": float(monthly_revenue),
+                "total_paid": float(total_paid),
+                "total_late": float(total_late),
+                "total_default": int(total_default)
+            }
+
+            # Retorna usando seu padrão ApiResponse
+            return data
+        except Exception as e:
+            return ApiResponse.error(str(e))
     
     @staticmethod
     def reverter_baixa(invoice_id=None):

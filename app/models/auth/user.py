@@ -11,6 +11,8 @@ class User(db.Model,UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+
+    last_seen_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Gerado no momento do insert
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
