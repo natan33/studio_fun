@@ -1,0 +1,150 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-0 text-gray-800">Contas a Pagar</h2>
+            <p class="text-muted small mb-0">Gestão de saídas e despesas do Studio Fun</p>
+        </div>
+        <button class="btn btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modalExpense">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Nova Despesa
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Total a Pagar (Pendentes)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalPending">R$ 0,00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-invoice-dollar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Pago (Mês Atual)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalPaid">R$ 0,00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter"></i> Filtros</h6>
+        </div>
+        <div class="card-body">
+            <form id="filterForm" class="row">
+                <div class="col-md-3 mb-2">
+                    <label class="small">Início</label>
+                    <input type="date" class="form-control form-control-sm" id="dateStart">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="small">Fim</label>
+                    <input type="date" class="form-control form-control-sm" id="dateEnd">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="small">Status</label>
+                    <select class="form-select form-select-sm" id="statusFilter">
+                        <option value="">Todos</option>
+                        <option value="pending">Pendente</option>
+                        <option value="paid">Pago</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-primary btn-sm w-100" onclick="aplicarFiltros()">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="expenseTable" class="table table-hover w-100">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Vencimento</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalExpense" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-left-danger">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="modalExpenseTitle">Cadastrar Nova Despesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formExpense">
+                {{ form.hidden_tag() }}
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">{{ form.description.label }}</label>
+                        {{ form.description(class="form-control", placeholder="Ex: Aluguel do Studio") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">{{ form.category.label }}</label>
+                        {{ form.category(class="form-select") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold">{{ form.amount.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-danger">R$</span>
+                                {{ form.amount(class="form-control", type="number", step="0.01") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold">{{ form.due_date.label }}</label>
+                            {{ form.due_date(class="form-control", type="date") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Fechar</button>
+                    <button type="submit" class="btn btn-danger" id="btnSubmitExpense">Confirmar Lançamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/financeiro_despesas.js') }}"></script>
+{% endblock %}

@@ -9,3 +9,10 @@ def finance_contas_receber():
     service = FinanceService()
     data = service.get_finance_dashboard_stats()
     return render_template('finance/finance_contas_receber.html', data=data)
+
+@main.route('/finance/expense', methods=['GET'])
+@login_required
+def finance_expense():
+    from app.controllers.forms.forms_finance import ExpenseForm
+    form = ExpenseForm()
+    return render_template('finance/finance_expense.html', form=form)
