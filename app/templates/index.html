@@ -1,12 +1,70 @@
 {% extends "layout/base.html" %}
 
+{% block title %}Dashboard Operacional - Studio Fun{% endblock %}
 {% block page_title %}Dashboard Operacional{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Bem-vindo, {{ current_user.username }}!</h1>
-        <p class="text-muted">Aqui está o resumo do Studio Fun hoje.</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Olá, {{ current_user.username }}! 👋</h1>
+            <p class="text-muted mb-0">Resumo operacional e financeiro do Studio Fun.</p>
+        </div>
+        <div class="text-end d-none d-md-block">
+            <span class="badge bg-light text-primary border p-2">
+                <i class="fas fa-clock me-1"></i> <span id="current-time"></span>
+            </span>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Entradas (Mês)</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="dash-income">R$ 0,00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-circle-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-start border-danger border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Saídas (Mês)</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="dash-expense">R$ 0,00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-circle-down fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-start border-dark border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">Saldo em Caixa</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="dash-profit">R$ 0,00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-wallet fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row mb-4">
@@ -15,27 +73,11 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" style="font-size: 0.75rem;">Total de Alunos</div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total de Alunos</div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_students }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300" style="color: #dddfeb;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="font-size: 0.75rem;">Matrículas Ativas</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_enrollments }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-file-signature fa-2x text-gray-300" style="color: #dddfeb;"></i>
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -47,11 +89,27 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1" style="font-size: 0.75rem;">Turmas Configuradas</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Matrículas Ativas</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_enrollments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-signature fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-start border-warning border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Turmas Config.</div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_schedules }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-calendar-alt fa-2x text-gray-300" style="color: #dddfeb;"></i>
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -62,13 +120,15 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar me-2"></i>Ocupação de Turmas (Capacidade Máxima: 15)</h6>
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-fire me-2 text-danger"></i>Top 5 Turmas com Maior Ocupação
+                    </h6>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
+                            <thead class="bg-light text-muted small">
                                 <tr>
                                     <th class="ps-4">Atividade / Dia</th>
                                     <th>Horário</th>
@@ -77,41 +137,48 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for item in data.occupancy %}
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="fw-bold">{{ item.label }}</div>
-                                    </td>
-                                    <td><span class="badge bg-light text-dark">{{ item.time }}</span></td>
-                                    <td style="min-width: 250px;">
-                                        <div class="d-flex align-items-center">
-                                            <div class="progress flex-grow-1" style="height: 10px; border-radius: 5px;">
-                                                <div class="progress-bar {% if item.pct >= 90 %}bg-danger{% elif item.pct >= 70 %}bg-warning{% else %}bg-success{% endif %}" 
-                                                     role="progressbar" 
-                                                     style="width: {{ item.pct }}%;" 
-                                                     aria-valuenow="{{ item.pct }}" 
-                                                     aria-valuemin="0" 
-                                                     aria-valuemax="100">
+                                {# Ordenamos por porcentagem e pegamos as 5 primeiras #}
+                                {% for item in data.occupancy|sort(attribute='pct', reverse=True) %}
+                                    {% if loop.index <= 5 %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="fw-bold text-dark">{{ item.label }}</div>
+                                        </td>
+                                        <td><span class="badge bg-light text-dark border">{{ item.time }}</span></td>
+                                        <td style="min-width: 200px;">
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar {% if item.pct >= 90 %}bg-danger{% elif item.pct >= 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ item.pct }}%;">
+                                                    </div>
                                                 </div>
+                                                <span class="ms-3 small fw-bold">{{ item.pct }}%</span>
                                             </div>
-                                            <span class="ms-3 small fw-bold">{{ item.pct }}%</span>
-                                        </div>
-                                    </td>
-                                    <td class="text-center pe-4">
-                                        <span class="fw-bold">{{ item.current }}</span> <span class="text-muted">/ {{ item.max }}</span>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <span class="fw-bold">{{ item.current }}</span><span class="text-muted">/{{ item.max }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
                                 {% else %}
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">Nenhuma turma cadastrada no momento.</td>
+                                    <td colspan="4" class="text-center py-4 text-muted">Nenhuma turma para exibir.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('main.page_schedules') }}" class="small text-primary text-decoration-none">Ver todas as turmas <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}

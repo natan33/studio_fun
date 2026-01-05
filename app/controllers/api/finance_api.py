@@ -1,8 +1,12 @@
+from datetime import datetime
 from flask import request
+from sqlalchemy import extract, func
+from app.models.pages.finance import Expense, Invoice
 from app.services import FinanceService
 from . import api
 from flask_login import login_required
 from app.utils.api_response import ApiResponse
+from app import db
 
 @api.route('/api/finance/list')
 @login_required
@@ -112,3 +116,11 @@ def cancel_payment(invoice_id):
 @login_required
 def revert_invoice(invoice_id):
     return FinanceService.reverter_baixa(invoice_id)
+
+
+
+@api.route('/api/finance/dashboard-data', methods=['GET'])
+@login_required
+def get_dashboard_data():
+    from app.services.FinanceService import FinanceService
+    return FinanceService.get_dashboard_data()

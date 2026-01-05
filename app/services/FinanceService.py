@@ -2,9 +2,9 @@ from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
 
-from sqlalchemy import func
+from sqlalchemy import extract, func
 from app.models.pages.students import Student
-from app.models.pages.finance import Invoice
+from app.models.pages.finance import Expense, Invoice
 from app import db
 from app.utils.api_response import ApiResponse
 
@@ -232,4 +232,32 @@ class FinanceService:
             return ApiResponse.success(message="Baixa revertida! A fatura voltou para Pendente.")
         except Exception as e:
             db.session.rollback()
+            return ApiResponse.error(str(e))
+        
+    
+    @staticmethod
+    def get_dashboard_data():
+        try:
+            today = datetime.now()
+            # 1. Total Recebido (Dinheiro que já entrou no caixa este mês)
+            total_income = db.session.query(func.sum(Invoice.amount)).filter(
+                Invoice.status == 'paid',
+                extract('month', Invoice.payment_date) == today.month
+            ).scalar() or 0
+
+            # 2. Total Pago (Dinheiro que já saiu do caixa este mês)
+            total_expense = db.session.query(func.sum(Expense.amount)).filter(
+                Expense.status == 'paid',
+                extract('month', Expense.payment_date) == today.month
+            ).scalar() or 0
+
+            data = {
+                "income": float(total_income),
+                "expense": float(total_expense),
+                "profit": float(total_income - total_expense),
+                "margin": round(((total_income - total_expense) / total_income * 100), 2) if total_income > 0 else 0
+            }
+
+            return ApiResponse.success(data=data)
+        except Exception as e:
             return ApiResponse.error(str(e))

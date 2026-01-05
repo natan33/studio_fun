@@ -16,3 +16,10 @@ def finance_expense():
     from app.controllers.forms.forms_finance import ExpenseForm
     form = ExpenseForm()
     return render_template('finance/finance_expense.html', form=form)
+
+@main.route("/finance/dashboard", methods=['GET'])
+@login_required
+def finance_dashboard():
+    service = FinanceService()
+    data = service.get_finance_dashboard_stats()
+    return render_template('finance/financeiro_dashboard.html', data=data)
