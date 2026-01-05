@@ -1,5 +1,8 @@
 {% extends "layout/base.html" %}
 
+{% block title %}Contas a Pagar - Studio Fun{% endblock %}
+{% block page_title %}Gestão Financeira{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +10,7 @@
             <h2 class="h3 mb-0 text-gray-800">Contas a Pagar</h2>
             <p class="text-muted small mb-0">Gestão de saídas e despesas do Studio Fun</p>
         </div>
-        <button class="btn btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modalExpense">
+        <button class="btn btn-danger shadow-sm" onclick="abrirModalNovaDespesa()">
             <i class="fas fa-plus fa-sm text-white-50"></i> Nova Despesa
         </button>
     </div>
@@ -109,8 +112,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="formExpense">
-                {{ form.hidden_tag() }}
-                
+                {{ form.csrf_token }}
+                {{ form.type_form }}
+                {{ form.expense_id }}
+
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label font-weight-bold">{{ form.description.label }}</label>
@@ -139,6 +144,33 @@
                     <button type="submit" class="btn btn-danger" id="btnSubmitExpense">Confirmar Lançamento</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalDetalhesExpense" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-left-secondary">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-info-circle"></i> Detalhes da Despesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Descrição:</strong> <span id="det-description"></span></li>
+                    <li class="list-group-item"><strong>Categoria:</strong> <span id="det-category" class="badge bg-light text-dark border"></span></li>
+                    <li class="list-group-item"><strong>Valor:</strong> <span id="det-amount" class="text-danger fw-bold"></span></li>
+                    <li class="list-group-item"><strong>Vencimento:</strong> <span id="det-due-date"></span></li>
+                    <li class="list-group-item"><strong>Status:</strong> <span id="det-status"></span></li>
+                    <li class="list-group-item" id="row-payment-date" style="display:none;">
+                        <strong>Data do Pagamento:</strong> <span id="det-payment-date"></span>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
         </div>
     </div>
 </div>

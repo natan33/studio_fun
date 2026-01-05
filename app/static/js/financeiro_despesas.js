@@ -1,6 +1,20 @@
+
+function aplicarFiltros() {
+    $('#expenseTable').DataTable().ajax.reload();
+}
+
 $(document).ready(function () {
     const table = $('#expenseTable').DataTable({
-        ajax: '/api/finance/expenses', // Endpoint que criamos no Service
+        ajax: {
+            url: '/api/finance/expenses',
+            data: function (d) {
+                // Captura os valores dos inputs e envia como parâmetros na URL
+                d.date_start = $('#dateStart').val();
+                d.date_end = $('#dateEnd').val();
+                d.status = $('#statusFilter').val();
+            }
+        },
+         // Endpoint que criamos no Service
         order: [[2, 'asc']], // Ordena por vencimento
         columns: [
             { data: 'description' },
@@ -60,6 +74,29 @@ $(document).ready(function () {
         ],
         drawCallback: function () {
             atualizarCardsResumo();
+        },
+         "language": {
+            "sEmptyTable": "Nenhum registro encontrado",
+            "sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+            "sInfoEmpty": "Mostrando 0 até 0 de 0 registros",
+            "sInfoFiltered": "(Filtrado de _MAX_ registros no total)",
+            "sInfoPostFix": "",
+            "sInfoThousands": ".",
+            "sLengthMenu": "_MENU_ resultados por página",
+            "sLoadingRecords": "Carregando...",
+            "sProcessing": "Processando...",
+            "sZeroRecords": "Nenhum registro encontrado",
+            "sSearch": "Pesquisar",
+            "oPaginate": {
+                "sNext": "Próximo",
+                "sPrevious": "Anterior",
+                "sFirst": "Primeiro",
+                "sLast": "Último"
+            },
+            "oAria": {
+                "sSortAscending": ": Ordenar colunas de forma ascendente",
+                "sSortDescending": ": Ordenar colunas de forma descendente"
+            }
         }
     });
 
@@ -67,16 +104,14 @@ $(document).ready(function () {
     $('#formExpense').on('submit', function (e) {
         e.preventDefault();
 
-        const formData = new FormData(this);
+        const formData = new FormData(document.getElementById('formExpense'));
         const data = Object.fromEntries(formData.entries());
+        console.log(data);
 
-        fetch('/api/finance/expenses/add', {
+        fetch('/api/finance/expenses/save', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': $('#csrf_token').val() // Pega o token gerado pelo FlaskForm
-            },
-            body: JSON.stringify(data)
+            body: formData
+
         })
             .then(response => response.json())
             .then(res => {
@@ -90,6 +125,13 @@ $(document).ready(function () {
                 }
             });
     });
+});
+
+// Limpa ao fechar o modal por qualquer meio
+$('#modalExpense').on('hidden.bs.modal', function () {
+    $('#formExpense')[0].reset();
+    $('input[name="expense_id"]').val('');
+    $('input[name="form_type"]').val('create');
 });
 
 function pagarDespesa(id) {
@@ -201,11 +243,26 @@ function deleteExpense(id) {
     });
 }
 
+// No seu arquivo financeiro_despesas.js
+
 function abrirModalNovaDespesa() {
-    $('#formExpense')[0].reset();
+    // 1. Limpa os campos do formulário (remove o que foi digitado antes)
+    $('#formExpense')[0].reset(); 
+    
+    // 2. Define que o tipo é 'create' (importante para não cair no bug de atualizar)
     $('input[name="form_type"]').val('create');
+    
+    // 3. Limpa o ID (garante que não há ID de uma edição anterior)
     $('input[name="expense_id"]').val('');
-    $('#modalExpense .modal-title').text('Cadastrar Nova Despesa').addClass('text-danger');
+    
+    // 4. Ajusta o visual do Modal para o padrão de cadastro
+    $('#modalExpense .modal-title').text('Cadastrar Nova Despesa')
+        .removeClass('text-primary')
+        .addClass('text-danger');
+    
+    $('#btnSubmitExpense').text('Confirmar Lançamento');
+
+    // 5. Abre o modal manualmente
     $('#modalExpense').modal('show');
 }
 
@@ -217,7 +274,7 @@ function editExpense(id) {
         if (res.code === 'SUCCESS') {
             const data = res.data;
             
-            $('input[name="form_type"]').val('update');
+            $('input[name="type_form"]').val('update');
             $('input[name="expense_id"]').val(id); // Guarda o ID para o back-end
             
             $('input[name="description"]').val(data.description);
@@ -229,4 +286,40 @@ function editExpense(id) {
             $('#modalExpense').modal('show');
         }
     });
+}
+
+function detalhesDespesa(id) {
+    fetch(`/api/finance/expenses/${id}`)
+    .then(response => response.json())
+    .then(res => {
+        if (res.code === 'SUCCESS') {
+            const data = res.data;
+            const formatarMoeda = val => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+            // Preenchendo os campos do modal de detalhes
+            $('#det-description').text(data.description);
+            $('#det-category').text(data.category);
+            $('#det-amount').text(formatarMoeda(data.amount));
+            $('#det-due-date').text(new Date(data.due_date_iso + 'T00:00:00').toLocaleDateString('pt-BR'));
+            
+            // Lógica de Status
+            let statusHtml = data.status === 'paid' 
+                ? '<span class="badge bg-success">Pago</span>' 
+                : '<span class="badge bg-danger">Pendente</span>';
+            $('#det-status').html(statusHtml);
+
+            // Exibir data de pagamento se existir
+            if (data.status === 'paid' && data.payment_date) {
+                $('#row-payment-date').show();
+                $('#det-payment-date').text(new Date(data.payment_date).toLocaleDateString('pt-BR'));
+            } else {
+                $('#row-payment-date').hide();
+            }
+
+            $('#modalDetalhesExpense').modal('show');
+        } else {
+            Swal.fire('Erro', 'Não foi possível carregar os detalhes.', 'error');
+        }
+    })
+    .catch(err => console.error("Erro ao buscar detalhes:", err));
 }

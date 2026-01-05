@@ -8,7 +8,7 @@ from flask import request
 @api.route('/api/finance/expenses', methods=['GET'])
 @login_required
 def list_expenses():
-    return ExpenseService.get_all_expenses()
+    return ExpenseService.get_all_expenses(request=request)
 
 @api.route('/api/finance/expenses/add', methods=['POST'])
 @login_required
@@ -20,17 +20,20 @@ def add_expense():
 @login_required
 def save_expense():
     form = ExpenseForm()
+    print(f"DEBUG: Dados do formulário recebidos: {request.form}")
     if form.validate_on_submit():
         data = request.form.to_dict() # Pega os dados do formulário
+        print(f"DEBUG: Dados recebidos no save_expense: {data}")
         
         # Lógica de decisão
-        if data.get('form_type') == 'update':
+        if data.get('type_form') == 'update':
             expense_id = data.get('expense_id')
             return ExpenseService.update_expense(expense_id, data)
         else:
             return ExpenseService.create_expense(data)
-            
-    return ApiResponse.error("Erro na validação do formulário")
+    else:
+        print(f"DEBUG: Formulário inválido: {form.errors}")
+        return ApiResponse.error("Erro na validação do formulário")
 
 @api.route('/api/finance/expenses/<int:id>/pay', methods=['POST'])
 @login_required

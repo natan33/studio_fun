@@ -2,8 +2,14 @@ $(document).ready(function () {
     // Inicializa o DataTable
     const table = $('#financialTable').DataTable({
         "ajax": {
-            "url": "/api/finance/list", // Sua rota que retornará o JSON
-            "dataSrc": "data"
+            "url": "/api/finance/list",
+            "data": function(d) {
+                // Captura os valores dos inputs de data e status
+                d.date_start = $('#dateStart').val();
+                d.date_end = $('#dateEnd').val();
+                d.status = $('#filterStatus').val();
+            }, // Sua rota que retornará o JSON
+        order: [[2, 'asc']], 
         },
         "columns": [
             { "data": "student_name" },
@@ -143,6 +149,10 @@ $(document).ready(function () {
         table.column(5).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 });
+
+function aplicarFiltros() {
+    $('#financialTable').DataTable().ajax.reload();
+}
 
 
 function loadFinancialSummary() {

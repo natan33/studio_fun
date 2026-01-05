@@ -1,16 +1,37 @@
+from flask import request
 from app.models import Expense
 from app import db
 from app.utils.api_response import ApiResponse
 from datetime import datetime
+from sqlalchemy import and_
+
 
 class ExpenseService:
+
+
     @staticmethod
-    def get_all_expenses():
+    def get_all_expenses(request=None):
         try:
-            expenses = Expense.query.order_by(Expense.due_date.asc()).all()
+            # Pega os argumentos da URL (query params)
+            date_start = request.args.get('date_start')
+            date_end = request.args.get('date_end')
+            status = request.args.get('status')
+
+            query = Expense.query
+
+            # Filtro por Período
+            if date_start and date_end:
+                query = query.filter(Expense.due_date.between(date_start, date_end))
+            
+            # Filtro por Status
+            if status:
+                query = query.filter(Expense.status == status)
+
+            expenses = query.order_by(Expense.due_date.asc()).all()
+            
             return ApiResponse.success(
                 data=[e.to_dict() for e in expenses],
-                message="Despesas listadas com sucesso"
+                message="Dados filtrados com sucesso"
             )
         except Exception as e:
             return ApiResponse.error(str(e))
@@ -97,13 +118,22 @@ class ExpenseService:
             if not expense:
                 return ApiResponse.error("Despesa não encontrada")
 
+            # PEGA A DATA DO DICIONÁRIO
+            due_date_str = data.get('due_date')
+
+            # VALIDAÇÃO: Se a data for None ou Vazia, retorna erro amigável
+            if not due_date_str:
+                return ApiResponse.error("A data de vencimento é obrigatória.")
+
             expense.description = data.get('description')
             expense.category = data.get('category')
             expense.amount = data.get('amount')
-            expense.due_date = datetime.strptime(data.get('due_date'), '%Y-%m-%d').date()
+            
+            # Agora o strptime está seguro, pois garantimos que due_date_str é texto
+            expense.due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
             
             db.session.commit()
             return ApiResponse.success(message="Despesa atualizada com sucesso!")
         except Exception as e:
             db.session.rollback()
-            return ApiResponse.error(str(e))
+            return ApiResponse.error(f"Erro ao processar data: {str(e)}")

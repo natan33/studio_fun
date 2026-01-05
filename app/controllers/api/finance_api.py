@@ -1,3 +1,4 @@
+from flask import request
 from app.services import FinanceService
 from . import api
 from flask_login import login_required
@@ -8,8 +9,7 @@ from app.utils.api_response import ApiResponse
 def api_finance_list():
     from app.services.FinanceService import FinanceService
     service = FinanceService()
-    data = service.get_all_invoices()
-    print(f"DEBUG: Dados de faturas retornados: {data}")
+    data = service.get_all_invoices(request=request)
     return ApiResponse.success(data=data)
 
     

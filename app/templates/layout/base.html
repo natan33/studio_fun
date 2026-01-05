@@ -198,6 +198,7 @@
 
                 <div class="section-divider">FINANCEIRO</div>
                 <li><a href="{{ url_for('main.finance_contas_receber') }}" class="nav-link {% if 'finance' in request.endpoint %}active{% endif %}"><i class="fas fa-file-invoice-dollar"></i> Contas a Receber</a></li>
+                <li><a href="{{ url_for('main.finance_expense') }}" class="nav-link {% if 'finance_expense' in request.endpoint %}active{% endif %}"><i class="fas fa-file-invoice"></i> Contas a Pagar</a></li>
             </ul>
         </div>
 
@@ -239,7 +240,7 @@
 
         {% block content %}{% endblock %}
     </main>
-
+    <script src="{{ url_for('static', filename='js/base/script.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>

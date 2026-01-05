@@ -46,6 +46,10 @@ class Registration(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     status = db.Column(db.String(20), default='pending')
+
+    last_seen_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    is_active = db.Column(db.Boolean, default=True)
     
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     

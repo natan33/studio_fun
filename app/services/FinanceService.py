@@ -50,10 +50,19 @@ class FinanceService:
 
 
     @staticmethod
-    def get_all_invoices():
+    def get_all_invoices(request=None):
         """Retorna faturas ativas (não canceladas) usando List Comprehension"""
         # Filtra para trazer apenas faturas que não foram inativadas
+        date_start = request.args.get('date_start')
+        date_end = request.args.get('date_end')
+        status = request.args.get('status')
         invoices = Invoice.query.join(Student).filter(Invoice.status != 'cancelled').all()
+        # Aplica filtros adicionais se fornecidos
+        if date_start and date_end:
+            invoices = [inv for inv in invoices if date_start <= inv.due_date.strftime('%Y-%m-%d') <= date_end]
+        if status:
+            invoices = [inv for inv in invoices if inv.status == status]
+        
         
         # List Comprehension para construir os dados do DataTables de forma performática
         data = [{

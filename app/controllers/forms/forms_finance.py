@@ -4,6 +4,7 @@ from wtforms.validators import DataRequired
 
 class ExpenseForm(FlaskForm):
     type_form = HiddenField('type_form')
+    expense_id = HiddenField('expense_id')
     description = StringField('Descrição', validators=[DataRequired()])
     category = SelectField('Categoria', choices=[
         ('Fixo', 'Fixo (Aluguel, Internet)'),
