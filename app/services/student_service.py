@@ -60,6 +60,7 @@ class StudentService:
                     student.city = self.form.city.data
                     student.emergency_contact = self.form.emergency_contact.data
                     student.emergency_phone = self.clean_mask(self.form.emergency_phone.data)
+                    student.plan_id = self.form.plan_id.data
 
                     # Atualiza Dados de Saúde (Tabela Relacionada)
                     health = StudentHealth.query.filter_by(student_id=student.id).first()
@@ -92,7 +93,8 @@ class StudentService:
                     city=self.form.city.data,
                     # Emergência
                     emergency_contact=self.clean_mask(self.form.emergency_contact.data),
-                    emergency_phone=self.form.emergency_phone.data
+                    emergency_phone=self.form.emergency_phone.data,
+                    plan_id=self.form.plan_id.data
                 )
                 db.session.add(new_student)
                 db.session.flush()
@@ -198,7 +200,8 @@ class StudentService:
                     "address": student.address or "",
                     "address_number": student.address_number or "",
                     "city": student.city or "",
-                    "enrollments":enrollment_data
+                    "enrollments":enrollment_data,
+                    "plan_id": student.plan_id
                 }
             return ApiResponse.success(data=student_data)
         except Exception as e:

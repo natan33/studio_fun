@@ -4,7 +4,7 @@ from pathlib import Path
 
 from sqlalchemy import extract, func
 from app.models.pages.students import Student
-from app.models.pages.finance import Expense, Invoice
+from app.models.pages.finance import Expense, Invoice, Plan
 from app import db
 from app.utils.api_response import ApiResponse
 
@@ -261,3 +261,32 @@ class FinanceService:
             return ApiResponse.success(data=data)
         except Exception as e:
             return ApiResponse.error(str(e))
+        
+    @staticmethod
+    def create_plan(name, price):
+        try:
+            # Verificação extra de negócio: evitar nomes duplicados
+            if Plan.query.filter_by(name=name).first():
+                return {"code": "ERROR", "message": "Já existe um plano com este nome."}
+
+            new_plan = Plan(name=name, price=price)
+            db.session.add(new_plan)
+            db.session.commit()
+            return {"code": "SUCCESS", "message": "Plano criado com sucesso!"}
+        except Exception as e:
+            db.session.rollback()
+            return {"code": "ERROR", "message": f"Erro no banco: {str(e)}"}
+
+    @staticmethod
+    def update_plan_price(plan_id, new_price):
+        try:
+            plan = Plan.query.get(plan_id)
+            if not plan:
+                return {"code": "ERROR", "message": "Plano não localizado."}
+            
+            plan.price = new_price
+            db.session.commit()
+            return {"code": "SUCCESS", "message": f"Preço de '{plan.name}' atualizado!"}
+        except Exception as e:
+            db.session.rollback()
+            return {"code": "ERROR", "message": f"Erro ao atualizar: {str(e)}"}

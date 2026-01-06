@@ -48,3 +48,5 @@ class StudentForm(FlaskForm):
     # --- Emergência ---
     emergency_contact = StringField('Contato de Emergência', validators=[Optional(), Length(max=100)])
     emergency_phone = StringField('Telefone de Emergência', validators=[Optional(), Length(max=20)])
+
+    plan_id = SelectField('Plano de Aula', coerce=int, validators=[DataRequired()])

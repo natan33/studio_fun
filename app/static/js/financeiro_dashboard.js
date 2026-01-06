@@ -53,3 +53,51 @@ let myChart;
     }
 
     $(document).ready(() => loadDashboardData());
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('input[name="action"]');
+    const divSelect = document.getElementById('div_select_plan');
+    const divName = document.getElementById('div_name_plan');
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'create') {
+                divSelect.classList.add('d-none');
+                divName.classList.remove('d-none');
+            } else {
+                divSelect.classList.remove('d-none');
+                divName.classList.add('d-none');
+            }
+        });
+    });
+});
+
+
+    // Exemplo de como disparar via AJAX para capturar o ApiResponse
+document.getElementById('formPlanos').onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    try {
+        const response = await fetch("/api/finance/plan/manage", {
+            method: "POST",
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest' // Bom para o Flask identificar AJAX
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.code === 'SUCCESS') {
+            Swal.fire('Sucesso!', result.message, 'success').then(() => {
+                location.reload();
+            });
+        } else {
+            Swal.fire('Erro', result.message, 'error');
+        }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+    }
+};

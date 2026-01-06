@@ -1,3 +1,5 @@
+from app.controllers.forms.forms_finance import PlanForm
+from app.models.pages.finance import Plan
 from . import main 
 from flask import render_template, request
 from flask_login import login_required
@@ -20,6 +22,8 @@ def finance_expense():
 @main.route("/finance/dashboard", methods=['GET'])
 @login_required
 def finance_dashboard():
+    form = PlanForm()
+    form.plan_id.choices = [(plan.id, plan.name) for plan in Plan.query.all()]
     service = FinanceService()
     data = service.get_finance_dashboard_stats()
-    return render_template('finance/financeiro_dashboard.html', data=data)
+    return render_template('finance/financeiro_dashboard.html', data=data, form=form)

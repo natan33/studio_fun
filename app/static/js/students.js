@@ -20,15 +20,15 @@ function filterTable() {
 
         // 1. Captura o Nome (está dentro da primeira célula, geralmente num <div> ou <td> direto)
         const studentName = row.cells[0].innerText.toLowerCase();
-        
+
         // 2. Captura o Status (buscamos o texto do Label ou o estado do Checkbox)
         // Como você usou um Switch, vamos olhar o texto do label ou a propriedade 'checked'
         const isChecked = row.querySelector('.form-check-input').checked;
         const statusLabel = isChecked ? 'active' : 'inactive';
-        
+
         // Lógica de matches
         const matchesName = studentName.includes(nameQuery);
-        
+
         let matchesStatus = false;
         if (statusQuery === 'all') {
             matchesStatus = true;
@@ -179,13 +179,13 @@ const maskCEP = (value) => {
 // Função para buscar o CEP
 async function buscaCEP(cep) {
     const cepLimpo = cep.replace(/\D/g, '');
-    
+
     if (cepLimpo.length !== 8) return;
 
     // Feedback visual de "carregando" nos campos
     const campoEndereco = document.getElementById('address');
     const campoCidade = document.getElementById('city');
-    
+
     campoEndereco.value = "...";
     campoCidade.value = "...";
 
@@ -203,7 +203,7 @@ async function buscaCEP(cep) {
         // Preenche os campos automaticamente
         campoEndereco.value = data.logradouro;
         campoCidade.value = data.localidade; // 'localidade' no ViaCEP é a Cidade
-        
+
         // Foca no campo "Número" para o usuário continuar digitando
         document.getElementById('address_number').focus();
 
@@ -220,7 +220,7 @@ document.addEventListener('input', (e) => {
 
     if (target.id === 'postal_code') {
         target.value = maskCEP(target.value);
-        
+
         // Se o CEP estiver completo (8 números + 1 hífen = 9 caracteres)
         if (target.value.length === 9) {
             buscaCEP(target.value);
@@ -318,7 +318,18 @@ async function loadStudentDetails(id) {
                         <p>Este aluno ainda não possui matrículas em turmas.</p>
                     </div>`;
             }
-
+            let plano_name
+            if (s.plan_id == '1') {
+                plano_name = 'Plano Mensal';
+            } else if (s.plan_id == '2') {
+                plano_name = 'Plano Trimestral';
+            } else if (s.plan_id == '3') {
+                plano_name = 'Plano Semestral';
+            } else if (s.plan_id == '4') {
+                plano_name = 'Plano Anual';
+            } else {
+                plano_name = 'Nenhum plano selecionado';
+            }
             // 2. Agora montamos o HTML COMPLETO (Abas + Conteúdo) em uma única variável
             const htmlCompleto = `
                 <ul class="nav nav-pills nav-fill mb-4 bg-light p-1 rounded" id="pills-tab" role="tablist">
@@ -329,7 +340,7 @@ async function loadStudentDetails(id) {
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="pills-classes-tab" data-bs-toggle="pill" data-bs-target="#pills-classes" type="button" role="tab">
-                            <i class="fas fa-dumbbell me-2"></i>Turmas e Aulas
+                            <i class="fas fa-dumbbell me-2"></i>Plano e Turmas
                         </button>
                     </li>
                 </ul>
@@ -357,6 +368,9 @@ async function loadStudentDetails(id) {
                             <div class="col-md-4"><small class="text-muted d-block">Tipo Sanguíneo</small><span class="badge bg-danger">${s.blood_type}</span></div>
                             <div class="col-md-4"><small class="text-muted d-block">Peso</small><span>${s.weight}</span></div>
                             <div class="col-md-4"><small class="text-muted d-block">Altura</small><span>${s.height}</span></div>
+                            <div class="col-md-4"><small class="text-muted d-block">Plano</small>
+                            <span>${plano_name}</span>
+                            </div>
                             <div class="col-12">
                                 <div class="p-2 border rounded bg-light mt-2">
                                     <small class="text-muted d-block">Contato de Emergência:</small>
@@ -427,6 +441,7 @@ async function editStudent(id) {
             form.blood_type.value = s.blood_type;
             form.weight.value = s.weight; // Valor numérico sem o "kg"
             form.height.value = s.height;
+            form.plan_id.value = s.plan_id;
             form.emergency_contact.value = s.emergency_contact;
             form.emergency_phone.value = s.emergency_phone;
             form.medical_notes.value = s.medical_notes;

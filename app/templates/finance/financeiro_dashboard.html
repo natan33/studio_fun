@@ -8,6 +8,10 @@
             <p class="text-muted small mb-0">Visão consolidada de saúde financeira do Studio Fun</p>
         </div>
         <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalPlanos">
+                <i class="fas fa-plus-circle me-1"></i> Gerenciar Planos
+            </button>
+
             <button class="btn btn-sm btn-outline-primary" onclick="loadDashboardData()">
                 <i class="fas fa-sync"></i> Atualizar
             </button>
@@ -95,6 +99,57 @@
                         <p><i class="fas fa-circle text-danger me-2"></i> Contas Pagas</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalPlanos" tabindex="-1" aria-labelledby="modalPlanosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+            <div class="modal-header border-bottom p-4">
+                <h5 class="modal-title fw-bold" id="modalPlanosLabel" style="color: #dc3545;">Configurações de Planos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formPlanos" method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-4">
+                        <label class="text-muted small mb-2 d-block">O que deseja fazer?</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="action" id="act_update" value="update" checked>
+                            <label class="btn btn-outline-danger" for="act_update">Atualizar Preço</label>
+
+                            <input type="radio" class="btn-check" name="action" id="act_create" value="create">
+                            <label class="btn btn-outline-danger" for="act_create">Criar Novo</label>
+                        </div>
+                    </div>
+
+                    <div id="div_select_plan" class="mb-3">
+                        <label class="form-label small text-secondary fw-bold">Selecione o Plano Existente</label>
+                        {{ form.plan_id(class="form-select border") }}
+                    </div>
+
+                    <div id="div_name_plan" class="mb-3 d-none">
+                        <label class="form-label small text-secondary fw-bold">Nome do Novo Plano</label>
+                        {{ form.name(class="form-control border", placeholder="Ex: Mensal 3x") }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small text-secondary fw-bold">Valor da Mensalidade (R$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">R$</span>
+                            {{ form.price(class="form-control border", placeholder="0.00") }}
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0 p-0 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Fechar</button>
+                        <button type="submit" class="btn btn-danger px-4 fw-bold" style="background-color: #dc3545; border-radius: 8px;">
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -1,7 +1,8 @@
 from datetime import datetime
 from flask import request
 from sqlalchemy import extract, func
-from app.models.pages.finance import Expense, Invoice
+from app.controllers.forms.forms_finance import PlanForm
+from app.models.pages.finance import Expense, Invoice, Plan
 from app.services import FinanceService
 from . import api
 from flask_login import login_required
@@ -124,3 +125,30 @@ def revert_invoice(invoice_id):
 def get_dashboard_data():
     from app.services.FinanceService import FinanceService
     return FinanceService.get_dashboard_data()
+
+
+@api.route('/api/finance/plan/manage', methods=['POST'])
+@login_required
+def api_manage_plan():
+    form = PlanForm()
+    # Carrega as opções do SelectField dinamicamente
+    form.plan_id.choices = [(p.id, p.name) for p in Plan.query.all()]
+
+    # Validação do Flask-Form
+    if form.validate_on_submit():
+        action = request.form.get('action')
+
+        if action == 'create':
+            response = FinanceService.create_plan(form.name.data, form.price.data)
+        elif action == 'update':
+            response = FinanceService.update_plan_price(form.plan_id.data, form.price.data)
+        else:
+            return ApiResponse.error(message="Ação não identificada.")
+
+        if response['code'] == 'SUCCESS':
+            return ApiResponse.success(message=response['message'])
+        return ApiResponse.error(message=response['message'])
+    
+    # Se a validação do Form falhar (ex: erro de tipo ou campo vazio)
+    first_error = list(form.errors.values())[0][0] if form.errors else "Erro de validação"
+    return ApiResponse.error(message=first_error)

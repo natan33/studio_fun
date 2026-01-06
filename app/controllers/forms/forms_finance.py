@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import HiddenField, StringField, DecimalField, DateField, SelectField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, NumberRange
 
 class ExpenseForm(FlaskForm):
     type_form = HiddenField('type_form')
@@ -16,3 +16,9 @@ class ExpenseForm(FlaskForm):
     amount = DecimalField('Valor', places=2, validators=[DataRequired()])
     due_date = DateField('Vencimento', validators=[DataRequired()])
     submit = SubmitField('Salvar Despesa')
+
+
+class PlanForm(FlaskForm):
+    plan_id = SelectField('Selecionar Plano', coerce=int, validators=[DataRequired()])
+    name = StringField('Nome do Plano', validators=[DataRequired()])
+    price = DecimalField('Preço (R$)', places=2, validators=[DataRequired(), NumberRange(min=0)])

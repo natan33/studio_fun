@@ -141,7 +141,6 @@
         </div>
     </div>
 </div>
-
 <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -206,6 +205,19 @@
                         </div>
 
                         <div class="col-12 mt-4">
+                            <h6 class="text-success fw-bold small text-uppercase mb-0">Plano e Financeiro</h6>
+                            <hr class="mt-1">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-muted">Vincular Plano de Mensalidade</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-file-invoice-dollar text-success"></i></span>
+                                {{ form.plan_id(class="form-select border-success-subtle") }}
+                            </div>
+                            <div class="form-text small">As faturas automáticas serão geradas com base neste plano.</div>
+                        </div>
+
+                        <div class="col-12 mt-4">
                             <h6 class="text-danger fw-bold small text-uppercase mb-0">Saúde e Emergência</h6>
                             <hr class="mt-1">
                         </div>
@@ -237,7 +249,7 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4">
+                    <button type="submit" id="btnSalvarText" class="btn btn-primary px-4">
                         <i class="fas fa-save me-2"></i>Salvar Cadastro
                     </button>
                 </div>
@@ -245,7 +257,6 @@
         </div>
     </div>
 </div>
-
 <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">

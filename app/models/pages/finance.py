@@ -11,6 +11,9 @@ class Plan(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
     duration_days = db.Column(db.Integer)
 
+    # Novo campo: 1 para mensal, 3 para trimestral, 12 para anual, etc.
+    duration_months = db.Column(db.Integer, default=1)
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # SENIOR TIP: onupdate garante que o Postgres/SQLAlchemy atualize a data 
