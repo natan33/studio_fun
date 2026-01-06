@@ -1,6 +1,7 @@
+
 from flask_wtf import FlaskForm
 from wtforms import HiddenField, StringField, DecimalField, DateField, SelectField, SubmitField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms.validators import DataRequired, NumberRange,Optional
 
 class ExpenseForm(FlaskForm):
     type_form = HiddenField('type_form')
@@ -19,6 +20,19 @@ class ExpenseForm(FlaskForm):
 
 
 class PlanForm(FlaskForm):
-    plan_id = SelectField('Selecionar Plano', coerce=int, validators=[DataRequired()])
-    name = StringField('Nome do Plano', validators=[DataRequired()])
+    plan_id = SelectField('Selecionar Plano', coerce=int, validators=[Optional()])
+    name = StringField('Nome do Plano', validators=[Optional()])
+    
     price = DecimalField('Preço (R$)', places=2, validators=[DataRequired(), NumberRange(min=0)])
+    
+    # Deixamos as escolhas aqui para o Flask reconhecer a validação
+    duration_months = SelectField('Duração', coerce=int, default=1, choices=[
+        (7, 'Quinzenal (15 dias)'),
+        (1, 'Mensal (1 mês)'),
+        (2, 'Bimestral (2 meses)'),
+        (3, 'Trimestral (3 meses)'),
+        (4, 'Quadrimestral (4 meses)'),
+        (5, 'Quinquenal (5 meses)'),
+        (6, 'Semestral (6 meses)'),
+        (12, 'Anual (12 meses)')
+    ])

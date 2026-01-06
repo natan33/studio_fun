@@ -133,6 +133,16 @@ def api_manage_plan():
     form = PlanForm()
     # Carrega as opções do SelectField dinamicamente
     form.plan_id.choices = [(p.id, p.name) for p in Plan.query.all()]
+    form.duration_months.choices = [
+        (7, 'Quinzenal (15 dias)'),
+        (1, 'Mensal (1 mês)'),
+        (2, 'Bimestral (2 meses)'),
+        (3, 'Trimestral (3 meses)'),
+        (4, 'Quadrimestral (4 meses)'),
+        (5, 'Quinquenal (5 meses)'),
+        (6, 'Semestral (6 meses)'),
+        (12, 'Anual (12 meses)')
+    ]
 
     # Validação do Flask-Form
     if form.validate_on_submit():

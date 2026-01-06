@@ -23,7 +23,14 @@ def finance_expense():
 @login_required
 def finance_dashboard():
     form = PlanForm()
-    form.plan_id.choices = [(plan.id, plan.name) for plan in Plan.query.all()]
+    planos = Plan.query.all()
+    
+    # IDs e Nomes dos planos para o primeiro select
+    form.plan_id.choices = [(plan.id, plan.name) for plan in planos]
+    
+    # VALORES FIXOS para a duração (conforme definido no PlanForm original)
+    # O primeiro valor da tupla deve ser o número de meses
+    
     service = FinanceService()
     data = service.get_finance_dashboard_stats()
-    return render_template('finance/financeiro_dashboard.html', data=data, form=form)
+    return render_template('finance/financeiro_dashboard.html', data=data, form=form, planos_lista=planos)

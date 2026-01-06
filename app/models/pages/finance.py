@@ -32,6 +32,39 @@ class Plan(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @classmethod
+    def auto_repair_durations(cls):
+        """Ajusta automaticamente a duração baseada no nome do plano (Bug Fix)"""
+        plans = cls.query.all()
+        updates = 0
+        
+        for plan in plans:
+            name_lower = plan.name.lower()
+            old_val = plan.duration_months
+            
+            # 1. Primeiro checamos os específicos e longos
+            if 'trimestre' in name_lower or 'tri' in name_lower:
+                plan.duration_months = 3
+            elif 'semestre' in name_lower or 'sem' in name_lower:
+                plan.duration_months = 6
+            # 2. Para o Anual, evitamos nomes que tenham 'mensal'
+            elif ('anual' in name_lower or 'ano' in name_lower) and 'mensal' not in name_lower:
+                plan.duration_months = 12
+            # 3. Se for mensal ou qualquer outro, cai no 1
+            else:
+                plan.duration_months = 1
+            
+            if old_val != plan.duration_months:
+                updates += 1
+                print(f"Corrigindo '{plan.name}': {old_val} -> {plan.duration_months}")
+        
+        try:
+            db.session.commit()
+            return f"Sucesso! {updates} planos corrigidos."
+        except Exception as e:
+            db.session.rollback()
+            return f"Erro: {str(e)}"
+
 class Invoice(db.Model):
     __tablename__ = 'invoices'
     __table_args__ = {"schema": "finance"}

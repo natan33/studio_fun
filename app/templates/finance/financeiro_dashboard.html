@@ -107,7 +107,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
             <div class="modal-header border-bottom p-4">
-                <h5 class="modal-title fw-bold" id="modalPlanosLabel" style="color: #dc3545;">Configurações de Planos</h5>
+                <h5 class="modal-title fw-bold" id="modalPlanosLabel" style="color: #dc3545;">Configurações de Planos
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
@@ -127,7 +128,23 @@
 
                     <div id="div_select_plan" class="mb-3">
                         <label class="form-label small text-secondary fw-bold">Selecione o Plano Existente</label>
-                        {{ form.plan_id(class="form-select border") }}
+                        <select name="{{ form.plan_id.name }}" id="{{ form.plan_id.id }}" class="form-select border">
+                            <option value="" data-price="0.00" data-duration="1">Selecione um plano...</option>
+                            {% for p in planos_lista %}
+                            <option value="{{ p.id }}" data-price="{{ p.price }}"
+                                data-duration="{{ p.duration_months | int }}"> {# Forçamos inteiro aqui #}
+                                {{ p.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small text-secondary fw-bold">Duração do Ciclo</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-calendar-alt"></i></span>
+                            {{ form.duration_months(class="form-select border") }}
+                        </div>
                     </div>
 
                     <div id="div_name_plan" class="mb-3 d-none">
@@ -145,7 +162,8 @@
 
                     <div class="modal-footer border-0 p-0 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Fechar</button>
-                        <button type="submit" class="btn btn-danger px-4 fw-bold" style="background-color: #dc3545; border-radius: 8px;">
+                        <button type="submit" class="btn btn-danger px-4 fw-bold"
+                            style="background-color: #dc3545; border-radius: 8px;">
                             Salvar Alterações
                         </button>
                     </div>
