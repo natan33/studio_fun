@@ -37,7 +37,7 @@ def logout():
 def forgot_password():
     form = ForgotPasswordForm()
     if form.validate_on_submit():
-        response = ServiceAutentication.request_password_reset(form.email.data)
+        response = ServiceAutentication.request_password_reset(email=form.email.data)
         
         # Agora acessamos como dicionário
         if response['code'] == 'SUCCESS':
@@ -62,7 +62,7 @@ def reset_password():
         response = ServiceAutentication.reset_password(
             email=form.email.data, 
             code=form.code.data, 
-            new_password_raw=form.password.data
+            new_password_hash=form.password.data
         )
         
         if response['code'] == 'SUCCESS':

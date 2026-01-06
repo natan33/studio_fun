@@ -53,11 +53,15 @@ class ServiceAutentication:
         user.reset_code = code
         db.session.commit()
         
+        subject="Studio Fun - Código de Recuperação"
         # 2. Disparar Task Celery
-        subject = "Código de Recuperação - Studio Fun"
-        body = f"Olá {user.username}, seu código de recuperação é: {code}"
+        template_info = {
+            'username': user.username,
+            'code': code,
+            'template': 'emails/reset_password.html'
+        }
         from app.tasks.email_tasks import send_async_email
-        send_async_email.delay(subject, user.email, body)
+        send_async_email.delay(subject, user.email, template_info)
         
         return {"code": "SUCCESS", "message": "Código enviado com sucesso!"}
 
