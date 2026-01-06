@@ -12,6 +12,8 @@ class User(db.Model,UserMixin):
     password_hash = db.Column(db.String(255), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
 
+    reset_code = db.Column(db.String(100), nullable=True)
+
     last_seen_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Gerado no momento do insert

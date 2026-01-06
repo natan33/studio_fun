@@ -8,11 +8,9 @@ celery = make_celery(app)
 # IMPORTAR TODAS TASKS
 import app.tasks.finance_tasks
 import app.tasks.finance_generate_task
-# import app.tasks.uplaods_blob_task
-# import app.tasks.uplaoder_google_driver
-# import app.tasks.lote_views_task
-# import app.tasks.marcar_inativos_task
-# import app.tasks.notificacoes_task
+import app.tasks.email_tasks
+
+
 celery.conf.beat_schedule = {
     'gerar-faturas-todo-mes': {
         'task': 'app.tasks.finance_tasks.generate_monthly_invoices_task',

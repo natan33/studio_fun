@@ -1,7 +1,11 @@
-from flask import flash, redirect, url_for
+import random
+from flask import flash, redirect, render_template, url_for
 from flask_login import login_user, logout_user
 from app.models.auth.user import User
+from app import db
 import logging
+
+from app.utils.api_response import ApiResponse
 
 # Este logger usará o TraceIdFilter definido no seu setup_logger
 logger = logging.getLogger(__name__)
@@ -36,3 +40,37 @@ class ServiceAutentication:
         logout_user()
         logger.info("Usuário realizou logout.")
         return redirect(url_for('auth.login'))
+    
+    @staticmethod
+    def request_password_reset(email):
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            return {"code": "ERROR", "message": "E-mail não encontrado"}
+        
+        # 1. Gerar e salvar código
+        code = str(random.randint(100000, 999999))
+        user.reset_code = code
+        db.session.commit()
+        
+        # 2. Disparar Task Celery
+        subject = "Código de Recuperação - Studio Fun"
+        body = f"Olá {user.username}, seu código de recuperação é: {code}"
+        from app.tasks.email_tasks import send_async_email
+        send_async_email.delay(subject, user.email, body)
+        
+        return {"code": "SUCCESS", "message": "Código enviado com sucesso!"}
+
+    @staticmethod
+    def reset_password(email=None, code=None, new_password_hash=None):
+        user = User.query.filter_by(email=email, reset_code=code).first()
+        
+        if not user:
+            return {"code": "ERROR", "message": "Código inválido ou e-mail incorreto."}
+        
+        # 3. Atualizar senha e limpar código
+        user.set_password(new_password_hash)
+        user.reset_code = None
+        db.session.commit()
+
+        return {"code": "SUCCESS", "message": "Senha alterada com sucesso!"}
