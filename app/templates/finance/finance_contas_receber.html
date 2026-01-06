@@ -225,6 +225,44 @@
 </div>
 
 
+<div class="modal fade" id="modalDetalhesPagamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-light text-dark">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="fas fa-file-invoice-dollar me-2"></i>Detalhes do Pagamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="text-muted small d-block">Aluno</label>
+                        <span id="detalhe_aluno" class="fw-bold fs-5"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small d-block">Valor Pago</label>
+                        <span id="detalhe_valor" class="text-success fw-bold"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small d-block">Data do Pagamento</label>
+                        <span id="detalhe_data"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small d-block">Tipo de Pagamento</label>
+                        <span id="detalhe_tipo" class="badge bg-primary"></span>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted small d-block">Descrição / Observação</label>
+                        <p id="detalhe_descricao" class="border p-2 rounded bg-white mt-1" style="min-height: 50px;"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}

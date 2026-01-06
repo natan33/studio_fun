@@ -3,13 +3,13 @@ $(document).ready(function () {
     const table = $('#financialTable').DataTable({
         "ajax": {
             "url": "/api/finance/list",
-            "data": function(d) {
+            "data": function (d) {
                 // Captura os valores dos inputs de data e status
                 d.date_start = $('#dateStart').val();
                 d.date_end = $('#dateEnd').val();
                 d.status = $('#filterStatus').val();
             }, // Sua rota que retornará o JSON
-        order: [[2, 'asc']], 
+            order: [[2, 'asc']],
         },
         "columns": [
             { "data": "student_name" },
@@ -96,6 +96,14 @@ $(document).ready(function () {
                             <i class="fas fa-ban"></i>
                         </button>`;
                     //}
+                    if (row.status === 'paid') {
+                        buttons += `
+                            <button class="btn btn-sm btn-info" 
+                                    onclick="showPaymentDetails(${row.id})" 
+                                    title="Ver Detalhes">
+                                <i class="fas fa-eye text-white"></i>
+                            </button>
+                        `;}
 
                     buttons += `</div>`;
                     return buttons;
@@ -236,19 +244,19 @@ function triggerInvoiceGeneration() {
 function confirmManualPayment(id, studentName) {
     document.getElementById('modal_invoice_id').value = id;
     document.getElementById('modal_student_name').innerText = studentName;
-    
+
     // Abre o modal de forma limpa
     const modalElement = document.getElementById('modalConfirmarPagamento');
     const myModal = new bootstrap.Modal(modalElement);
     myModal.show();
 }
 
-document.getElementById('formBaixaManual').addEventListener('submit', async function(e) {
+document.getElementById('formBaixaManual').addEventListener('submit', async function (e) {
     e.preventDefault();
-    
+
     const id = document.getElementById('modal_invoice_id').value;
     const formData = new FormData(this);
-    
+
     try {
         const response = await fetch(`/api/finance/confirm/pagament/${id}`, {
             method: 'POST',
@@ -263,7 +271,7 @@ document.getElementById('formBaixaManual').addEventListener('submit', async func
             const modalElement = document.getElementById('modalConfirmarPagamento');
             const modalInstance = bootstrap.Modal.getInstance(modalElement);
             if (modalInstance) modalInstance.hide();
-            
+
             // Recarrega o DataTable (ajuste o ID da sua tabela aqui)
             if ($.fn.DataTable.isDataTable('#financialTable')) {
                 $('#financialTable').DataTable().ajax.reload(null, false);
@@ -519,13 +527,13 @@ function reverterBaixa(btn, invoiceId) {
 
 function processarCobranca(nome, telefone, vencimento, valor) {
     const minhaChavePix = "SUA_CHAVE_AQUI"; // Coloque sua chave real aqui
-    
+
     // 1. Tenta copiar a chave PIX para o seu computador/celular primeiro
     navigator.clipboard.writeText(minhaChavePix).then(() => {
-        
+
         // Se a cópia deu certo, agora preparamos o WhatsApp
         enviarWhatsappComPix(nome, telefone, vencimento, valor, minhaChavePix);
-        
+
         // Notificação rápida e discreta (Toast) para não atrapalhar a abertura da aba
         const Toast = Swal.mixin({
             toast: true,
@@ -556,11 +564,11 @@ function enviarWhatsappComPix(nome, telefone, vencimento, valor, chave) {
     let foneLimpo = telefone.replace(/\D/g, '');
     if (foneLimpo.length <= 11) foneLimpo = '55' + foneLimpo;
 
-    const valorFormatado = new Intl.NumberFormat('pt-BR', { 
-        style: 'currency', 
-        currency: 'BRL' 
+    const valorFormatado = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
     }).format(valor);
-    
+
     // Mensagem focada em texto puro e formatação de negrito/itálico
     const mensagem = [
         `*STUDIO FUN - GESTAO FINANCEIRA*`,
@@ -586,4 +594,34 @@ function enviarWhatsappComPix(nome, telefone, vencimento, valor, chave) {
     // O encodeURIComponent cuidará apenas dos espaços e quebras de linha agora
     const url = `https://wa.me/${foneLimpo}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
+}
+
+
+async function showPaymentDetails(id) {
+    try {
+        // Busca os dados detalhados no servidor
+        const response = await fetch(`/api/finance/details/${id}`);
+        const result = await response.json();
+
+        if (result.code === 'SUCCESS') {
+            const data = result.data;
+
+            // Preenche o modal (usando os mesmos IDs do modal branco que criamos antes)
+            document.getElementById('detalhe_aluno').innerText = data.student_name;
+            document.getElementById('detalhe_valor').innerText = `R$ ${data.amount}`;
+            document.getElementById('detalhe_tipo').innerText = data.tp_pag;
+            document.getElementById('detalhe_data').innerText = data.paid_at;
+            document.getElementById('detalhe_descricao').innerText = data.description;
+
+            // Abre o modal
+            const modalElement = document.getElementById('modalDetalhesPagamento');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } else {
+            Swal.fire('Erro', result.message, 'error');
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+        Swal.fire('Erro', 'Não foi possível carregar os detalhes.', 'error');
+    }
 }

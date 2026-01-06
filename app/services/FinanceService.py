@@ -283,13 +283,38 @@ class FinanceService:
 
             # Atualiza os campos com base no formulário
             invoice.status = 'paid'
-            invoice.tp_pag = payment_data.get('tp_pag')
+            invoice.payment_method = payment_data.get('tp_pag')
             invoice.description = payment_data.get('description')
             invoice.paid_at = datetime.now(timezone.utc)
 
             db.session.commit()
-            return ApiResponse.success(f"Pagamento de registrado com sucesso!")
+            return ApiResponse.success(message=f"Pagamento de registrado com sucesso!")
 
         except Exception as e:
             db.session.rollback()
-            return ApiResponse.error(f"Erro ao processar pagamento: {str(e)}", 500)
+            return ApiResponse.error(message=f"Erro ao processar pagamento: {str(e)}", status_code=500)
+        
+    @staticmethod
+    def get_payment_details(invoice_id=None):
+        try:
+            from app.models import Invoice
+            invoice = Invoice.query.get(invoice_id)
+            
+            if not invoice:
+                return ApiResponse.error("Fatura não encontrada", 404)
+
+            data = {
+                "id": invoice.id,
+                "student_name": invoice.student.full_name if invoice.student else "N/A",
+                "amount": invoice.amount, # Usando amount em vez de value
+                "plan_name": invoice.plan.name if invoice.plan else "N/A",
+                "tp_pag": invoice.payment_method or "Não informado", # Usando payment_method do seu modelo
+                "description": invoice.description_paid or "Sem descrição", # Nome correto da coluna
+                "paid_at": invoice.paid_at.strftime('%d/%m/%Y %H:%M') if invoice.paid_at else "N/A",
+                "due_date": invoice.due_date.strftime('%d/%m/%Y') if invoice.due_date else "N/A",
+                "status": invoice.status
+            }
+            print(invoice.amount)
+            return ApiResponse.success(data=data)
+        except Exception as e:
+            return ApiResponse.error(message=str(e))

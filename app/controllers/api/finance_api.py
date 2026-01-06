@@ -178,7 +178,10 @@ def confirm_payment(invoice_id):
         # Retorna o JSON e o código de status HTTP (200 ou erro)
         return FinanceService.mark_as_paid(invoice_id, payment_data)
         
-
-    
     # Se o formulário falhar na validação
     return ApiResponse.error(message="Dados de pagamento inválidos")
+
+@api.route('/api/finance/details/<int:invoice_id>', methods=['GET'])
+@login_required
+def get_invoice_details(invoice_id):
+    return FinanceService.get_payment_details(invoice_id)
