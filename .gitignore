@@ -26,3 +26,4 @@ flask_session/
 flask_session/
 __pycache__/
 teste_cache.sqlite
+README copy.md
