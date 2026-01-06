@@ -117,3 +117,5 @@ class StudentHealth(db.Model):
     @classmethod
     def get_student_id(cls,student_id=None):
         return cls.query.filter_by(student_id=student_id).first()
+
+

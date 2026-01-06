@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .container { font-family: sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .card { 
+            background-color: #073b32; 
+            max-width: 550px; 
+            margin: 0 auto; 
+            padding: 30px; 
+            border-radius: 15px; 
+            text-align: center;
+            color: #ffffff;
+            border-bottom: 5px solid #00f2ff;
+        }
+        .header-title { color: #00f2ff; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .info-box { 
+            background-color: #114d44; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+            border: 1px solid #00f2ff;
+            text-align: left;
+        }
+        
+        .info-row { border-bottom: 1px solid rgba(0, 242, 255, 0.2); padding: 8px 0; display: block; }
+        .info-label { color: #00f2ff; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .info-value { color: #ccff00; font-size: 16px; float: right; }
+        
+        .welcome-highlight { color: #ccff00; font-size: 20px; font-weight: bold; }
+        
+        .schedule-box {
+            background: #000;
+            color: #ccff00;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px dashed #00f2ff;
+        }
+
+        .footer { font-size: 12px; color: #a0a0a0; margin-top: 20px; }
+        
+        .btn-portal {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #00f2ff;
+            color: #073b32;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2 class="header-title">Studio Fun</h2>
+            <p class="welcome-highlight">BEM-VINDO(A) AO TIME!</p>
+            <p>Olá, <strong>{{ student_name }}</strong>! Sua matrícula foi realizada com sucesso. Estamos prontos para começar essa jornada com você.</p>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="label" style="color:#00f2ff; font-size:11px; font-weight:bold;">PLANO:</span>
+                    <span style="color:#ccff00; float:right;">{{ plan_name }}</span>
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="info-row">
+                    <span class="label" style="color:#00f2ff; font-size:11px; font-weight:bold;">DURAÇÃO:</span>
+                    <span style="color:#ccff00; float:right;">{{ duration }} meses</span>
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="info-row">
+                    <span class="label" style="color:#00f2ff; font-size:11px; font-weight:bold;">AULA/TURMA:</span>
+                    <span style="color:#ccff00; float:right;">{{ class_name }}</span>
+                    <div style="clear:both;"></div>
+                </div>
+                
+                <p style="font-size: 12px; margin-bottom: 5px; color: #fff; margin-top: 15px;">SEU CRONOGRAMA:</p>
+                <div class="schedule-box">
+                    {{ schedule }}
+                </div>
+            </div>
+
+            <p>Prepare o seu treino! O movimento cura e nós estamos aqui para te guiar.</p>
+            
+            <a href="#" class="btn-portal">Acessar Portal do Aluno</a>
+            
+            <p class="footer">Matrícula ativa em: {{ enrollment_date }}</p>
+            <p class="footer">© 2026 Studio Fun - Movimento Cura</p>
+        </div>
+    </div>
+</body>
+</html>

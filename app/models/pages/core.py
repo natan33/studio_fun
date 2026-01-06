@@ -56,3 +56,27 @@ class AuditLog(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
+class WelcomeEmailLog(db.Model):
+    __tablename__ = 'welcome_email_logs'
+    __table_args__ = {"schema": "core"}
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.students.id'), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # SENIOR TIP: onupdate garante que o Postgres/SQLAlchemy atualize a data 
+    # automaticamente em cada modificação do registro.
+    update_at = db.Column(
+        db.DateTime, 
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()

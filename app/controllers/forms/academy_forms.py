@@ -26,7 +26,9 @@ class ClassScheduleForm(FlaskForm):
         ('Sexta-feira', 'Sexta-feira'),
         ('Sábado', 'Sábado'),
         ('Segunda, Quarta e Sexta', 'Segunda, Quarta e Sexta'),
-        ('Terça e Quinta', 'Terça e Quinta')
+        ('Terça e Quinta', 'Terça e Quinta'),
+        ('Segunda à Sexta', 'Segunda à Sexta'),
+        ('Segunda à Sábado', 'Segunda à Sábado')
     ], validators=[DataRequired()])
     
     start_time = TimeField('Horário de Início', validators=[DataRequired()])
