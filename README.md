@@ -49,3 +49,43 @@ MAIL_USERNAME=seu-email@gmail.com
 MAIL_PASSWORD=sua-senha-app
 REDIS_URL=redis://localhost:6379/0
 ```
+
+### 4. Inicializar o Banco de Dados (via Flask Shell)
+```bash
+
+flask shell
+>>> from app import db
+>>> db.create_all()
+>>> exit()
+```
+### 5. Executar a Aplicação
+Em terminais separados, rode:
+
+```bash
+
+# Terminal 1: Flask App
+flask run
+
+# Terminal 2: Celery Worker
+celery -A app.celery worker --loglevel=info
+
+# Terminal 3: Celery Beat (Para os Jobs agendados)
+celery -A app.celery beat --loglevel=info
+```
+
+## 📧 Estrutura de E-mails
+Os templates de e-mail seguem a identidade visual do Studio Fun (Dark/Green Tech para faturas e Red/Professional para boas-vindas), localizados em app/templates/emails/.
+
+## 🤝 Contribuição
+
+1.Faça um Fork do projeto
+
+2.Crie uma branch para sua feature (git checkout -b feature/NovaFeature)
+
+3.Comite suas mudanças (git commit -m 'Adicionando nova feature')
+
+4.Push para a branch (git push origin feature/NovaFeature)
+
+5.Abra um Pull Request
+
+### Desenvolvido com ❤️ para o Studio Fun - Movimento Cura.

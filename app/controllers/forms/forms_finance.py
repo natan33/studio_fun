@@ -36,3 +36,16 @@ class PlanForm(FlaskForm):
         (6, 'Semestral (6 meses)'),
         (12, 'Anual (12 meses)')
     ])
+
+class PaymentTypeForm(FlaskForm):
+    tp_pag = SelectField("Tipo de Pagamento", validators=[DataRequired()],choices=[
+        ('Dinheiro', 'Dinheiro'),
+        ('Cartão de Crédito', 'Cartão de Crédito'),
+        ('Cartão de Débito', 'Cartão de Débito'),
+        ('Transferência Bancária', 'Transferência Bancária'),
+        ('PIX', 'PIX'),
+        ('Cheque', 'Cheque'),
+        ('Boleto Bancário', 'Boleto Bancário')
+    ])
+    description = StringField('Descrição (Opcional)', validators=[Optional()])
+    submit = SubmitField('Salvar Tipo de Pagamento')

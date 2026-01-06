@@ -232,49 +232,69 @@ function triggerInvoiceGeneration() {
     });
 }
 
-function confirmManualPayment(invoiceId, studentName) {
-    const ttk = document.getElementById('ttk').value;
-    const table = $('#financialTable').DataTable();
-
-    Swal.fire({
-        title: 'Confirmar Pagamento?',
-        text: `Deseja dar baixa manual na fatura de ${studentName}?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#198754',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sim, pago!',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/api/finance/pay/${invoiceId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': ttk
-                }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.code === 'SUCCESS') {
-                        Swal.fire('Pago!', data.message, 'success').then(() => {
-                            // Recarrega a tabela e os cards para atualizar os valores
-                            if (typeof table !== 'undefined') {
-                                table.ajax.reload(null, false); // false para manter a página atual
-                            }
-                            loadFinancialSummary(); // Recarrega para atualizar os cards de resumo
-                        });
-                    } else {
-                        Swal.fire('Erro!', data.message, 'error');
-                    }
-                })
-                .catch(() => {
-                    Swal.fire('Erro!', 'Falha na comunicação com o servidor.', 'error');
-                });
-        }
-    });
+// 1. Abre o modal e preenche os dados
+function confirmManualPayment(id, studentName) {
+    document.getElementById('modal_invoice_id').value = id;
+    document.getElementById('modal_student_name').innerText = studentName;
+    
+    // Abre o modal de forma limpa
+    const modalElement = document.getElementById('modalConfirmarPagamento');
+    const myModal = new bootstrap.Modal(modalElement);
+    myModal.show();
 }
 
+document.getElementById('formBaixaManual').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const id = document.getElementById('modal_invoice_id').value;
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch(`/api/finance/confirm/pagament/${id}`, {
+            method: 'POST',
+            body: formData,
+            // O Flask-WTF precisa do token CSRF que já está no formData via hidden_tag()
+        });
+
+        const result = await response.json();
+
+        if (result.code === 'SUCCESS') {
+            // Fecha o modal
+            const modalElement = document.getElementById('modalConfirmarPagamento');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) modalInstance.hide();
+            
+            // Recarrega o DataTable (ajuste o ID da sua tabela aqui)
+            if ($.fn.DataTable.isDataTable('#financialTable')) {
+                $('#financialTable').DataTable().ajax.reload(null, false);
+            }
+
+            loadFinancialSummary();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: result.message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: result.message || 'Erro ao processar pagamento'
+            });
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro de Conexão',
+            text: 'Não foi possível comunicar com o servidor.'
+        });
+    }
+});
 
 function openBillingModal(invoiceId) {
     // 1. Abre o Swal de Carregamento (Tamanho reduzido)

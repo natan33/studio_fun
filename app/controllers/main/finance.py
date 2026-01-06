@@ -1,4 +1,4 @@
-from app.controllers.forms.forms_finance import PlanForm
+from app.controllers.forms.forms_finance import PaymentTypeForm, PlanForm
 from app.models.pages.finance import Plan
 from . import main 
 from flask import render_template, request
@@ -8,9 +8,10 @@ from app.services.FinanceService import FinanceService
 @main.route('/finance/contas-receber', methods=['GET'])
 @login_required
 def finance_contas_receber():
+    form_type = PaymentTypeForm()
     service = FinanceService()
     data = service.get_finance_dashboard_stats()
-    return render_template('finance/finance_contas_receber.html', data=data)
+    return render_template('finance/finance_contas_receber.html', data=data,form=form_type)
 
 @main.route('/finance/expense', methods=['GET'])
 @login_required

@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import request
 from sqlalchemy import extract, func
-from app.controllers.forms.forms_finance import PlanForm
+from app.controllers.forms.forms_finance import PaymentTypeForm, PlanForm
 from app.models.pages.finance import Expense, Invoice, Plan
 from app.services import FinanceService
 from . import api
@@ -162,3 +162,23 @@ def api_manage_plan():
     # Se a validação do Form falhar (ex: erro de tipo ou campo vazio)
     first_error = list(form.errors.values())[0][0] if form.errors else "Erro de validação"
     return ApiResponse.error(message=first_error)
+
+@api.route('/api/finance/confirm/pagament/<int:invoice_id>', methods=['POST'])
+@login_required
+def confirm_payment(invoice_id):
+    form = PaymentTypeForm()
+
+    if form.validate_on_submit():
+        payment_data = {
+            'tp_pag': form.tp_pag.data,
+            'description': form.description.data
+        }
+        
+        # Chama o Service que já retorna um ApiResponse
+        # Retorna o JSON e o código de status HTTP (200 ou erro)
+        return FinanceService.mark_as_paid(invoice_id, payment_data)
+        
+
+    
+    # Se o formulário falhar na validação
+    return ApiResponse.error(message="Dados de pagamento inválidos")

@@ -88,16 +88,6 @@ class FinanceService:
         # Esta função seria chamada por um CRON JOB ou manualmente
         pass
 
-    @staticmethod
-    def mark_as_paid(invoice_id):
-        """Dá baixa manual em uma fatura"""
-        invoice = Invoice.query.get(invoice_id)
-        if invoice:
-            invoice.status = 'paid'
-            invoice.payment_date = datetime.now()
-            db.session.commit()
-            return True, "Pagamento registrado!"
-        return False, "Fatura não encontrada."
     
     @staticmethod
     def process_payment(invoice_id):
@@ -110,24 +100,6 @@ class FinanceService:
         db.session.commit()
         return True, "Pagamento registrado com sucesso!"
     
-
-    @staticmethod
-    def mark_as_paid(invoice_id=None):
-        invoice = Invoice.query.get(invoice_id)
-        if not invoice:
-            return False, "Fatura não encontrada."
-        
-        if invoice.status == 'paid':
-            return False, "Esta fatura já foi paga."
-
-        try:
-            invoice.status = 'paid'
-            invoice.payment_date = datetime.now()
-            db.session.commit()
-            return True, "Pagamento registado com sucesso!"
-        except Exception as e:
-            db.session.rollback()
-            return False, f"Erro ao processar: {str(e)}"
         
     @staticmethod
     def delete_pix_file():
@@ -297,3 +269,27 @@ class FinanceService:
         except Exception as e:
             db.session.rollback()
             return {"code": "ERROR", "message": f"Erro ao atualizar: {str(e)}"}
+        
+    @staticmethod
+    def mark_as_paid(invoice_id=None, payment_data=None):
+        try:
+            from app import db
+            from app.models import Invoice
+            from datetime import datetime, timezone
+
+            invoice = Invoice.query.get(invoice_id)
+            if not invoice:
+                return ApiResponse.error("Fatura não encontrada", 404)
+
+            # Atualiza os campos com base no formulário
+            invoice.status = 'paid'
+            invoice.tp_pag = payment_data.get('tp_pag')
+            invoice.description = payment_data.get('description')
+            invoice.paid_at = datetime.now(timezone.utc)
+
+            db.session.commit()
+            return ApiResponse.success(f"Pagamento de registrado com sucesso!")
+
+        except Exception as e:
+            db.session.rollback()
+            return ApiResponse.error(f"Erro ao processar pagamento: {str(e)}", 500)

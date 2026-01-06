@@ -189,6 +189,42 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalConfirmarPagamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-light text-dark"> <form id="formBaixaManual">
+                {{ form.hidden_tag() }}
+                <input type="hidden" id="modal_invoice_id">
+                
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title">Confirmar Recebimento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p>Aluno: <strong id="modal_student_name"></strong></p>
+                    
+                    <div class="mb-3">
+                        {{ form.tp_pag.label(class="form-label") }}
+                        {{ form.tp_pag(class="form-select border-1", id="modal_tp_pag") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control border-1", id="modal_description", placeholder="Opcional") }}
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Confirmar Pagamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 {% endblock %}
 
 {% block scripts %}

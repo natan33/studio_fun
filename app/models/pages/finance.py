@@ -84,7 +84,8 @@ class Invoice(db.Model):
     external_id = db.Column(db.String(100)) # ID da transação no Gateway (Mercado Pago, Asaas, etc)
     pix_copy_paste = db.Column(db.Text) # Código Pix Copia e Cola
 
-    
+    paid_at = db.Column(db.DateTime, nullable=True)
+    description_paid = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     update_at = db.Column(
@@ -92,7 +93,6 @@ class Invoice(db.Model):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc)
     )
-
 
 
     # Relacionamentos
