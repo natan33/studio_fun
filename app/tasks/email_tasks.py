@@ -27,3 +27,17 @@ def send_async_email(self, subject=None, recipient=None, template_data=None):
             return f"E-mail HTML enviado para {recipient}"
         except Exception as e:
             return f"Erro: {str(e)}"
+        
+@celery.task(name="send_async_invoice")
+def send_async_invoice(subject, recipient, template, data):
+    with current_app.app_context():
+        from app import mail
+        msg = Message(subject, recipients=[recipient])
+        # Renderiza o template passando o dicionário de dados descompactado
+        msg.html = render_template(template, **data)
+        
+        try:
+            mail.send(msg)
+            return f"E-mail enviado para {recipient}"
+        except Exception as e:
+            return f"Erro no envio: {str(e)}"

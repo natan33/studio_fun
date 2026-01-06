@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { font-family: sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .card { 
+            background-color: #073b32; 
+            max-width: 500px; 
+            margin: 0 auto; 
+            padding: 30px; 
+            border-radius: 15px; 
+            text-align: center;
+            color: #ffffff;
+        }
+        .header-title { color: #00f2ff; margin-bottom: 5px; }
+        .amount-box { 
+            background-color: #114d44; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+            border: 1px solid #00f2ff;
+        }
+        .amount-value { color: #ccff00; font-size: 28px; font-weight: bold; }
+        .qr-code-img { 
+            background-color: white; 
+            padding: 10px; 
+            border-radius: 10px; 
+            width: 200px; 
+            height: 200px;
+        }
+        .pix-code { 
+            font-size: 11px; 
+            color: #ccff00; 
+            word-break: break-all; 
+            margin-top: 10px;
+            background: #000;
+            padding: 5px;
+        }
+        .footer { font-size: 12px; color: #a0a0a0; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2 class="header-title">Studio Fun</h2>
+            <p>Olá, <strong>{{ student_name }}</strong>!</p>
+            <p>Sua mensalidade referente a <strong>{{ month }}</strong> já está disponível.</p>
+            
+            <div class="amount-box">
+                <span style="display:block; font-size: 14px;">Valor a pagar:</span>
+                <span class="amount-value">R$ {{ amount }}</span>
+            </div>
+
+            <p>Escaneie o QR Code abaixo para pagar via PIX:</p>
+            <img src="{{ qrcode_url }}" alt="QR Code de Pagamento" class="qr-code-img">
+            
+            <p class="small">Ou utilize o "Copia e Cola":</p>
+            <div class="pix-code">{{ pix_payload }}</div>
+            
+            <p class="footer">Vencimento: {{ due_date }}</p>
+            <p class="footer">© 2026 Studio Fun - Movimento Cura</p>
+        </div>
+    </div>
+</body>
+</html>

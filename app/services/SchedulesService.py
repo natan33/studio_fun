@@ -137,3 +137,27 @@ class SchedulesService:
             db.session.rollback()
             print(e)
             return ApiResponse.error(message=str(e))
+        
+
+    @staticmethod
+    def notify_new_invoice(invoice):
+        """
+        invoice: objeto do banco de dados com dados da mensalidade
+        """
+        data = {
+            'student_name': invoice.user.username,
+            'month': invoice.reference_month, # Ex: Janeiro/2026
+            'amount': f"{invoice.amount:.2f}",
+            'due_date': invoice.due_date.strftime('%d/%m/%Y'),
+            'qrcode_url': invoice.qr_code_link, # URL da imagem do QR Code
+            'pix_payload': invoice.pix_raw_code # Texto para Copia e Cola
+        }
+
+        from app.tasks.email_tasks import send_async_invoice
+        
+        send_async_invoice.delay(
+            subject=f"Sua mensalidade - Studio Fun",
+            recipient=invoice.user.email,
+            template='emails/invoice.html',
+            data=data
+        )

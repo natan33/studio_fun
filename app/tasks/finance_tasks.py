@@ -2,18 +2,21 @@ import os
 from pathlib import Path
 import time
 from app import  db
+from app.tasks.financial_tasks import generate_and_send_invoice_pix
 from celery_worker import celery
 from app.models.pages.students import Student
 from app.models.pages.finance import Invoice, Plan
 from datetime import datetime
 import calendar
 
-@celery.task
+@celery.task(name='app.tasks.finance_tasks.generate_monthly_invoices_task')
 def generate_monthly_invoices_task():
     """Gera faturas para todos os alunos ativos no mês atual, ignorando as canceladas"""
     hoje = datetime.now()
     # Define o vencimento para o dia 10 do mês atual
     due_date = hoje.replace(day=10).date()
+    # Nome do mês para o e-mail (ex: Janeiro/2026)
+    month_ref = hoje.strftime('%B/%Y')
     
     students = Student.query.filter_by(is_active=True).all()
     count = 0
@@ -24,30 +27,46 @@ def generate_monthly_invoices_task():
             errors += 1
             continue
 
-        # Buscamos faturas que NÃO estejam canceladas (usando 'cancel')
+        # Buscamos faturas que NÃO estejam canceladas
         existing = Invoice.query.filter(
             Invoice.student_id == student.id,
-            Invoice.status != 'cancelled',  # Padronizado para seu banco
+            Invoice.status != 'cancelled',
             db.extract('month', Invoice.due_date) == hoje.month,
             db.extract('year', Invoice.due_date) == hoje.year
         ).first()
         
-        # Se não existir uma fatura ativa (pending ou paid), geramos uma nova
         if not existing:
             plan = Plan.query.get(student.plan_id)
             if plan:
+                # 1. Criamos o objeto da fatura
                 new_invoice = Invoice(
                     student_id=student.id,
                     plan_id=plan.id,
                     amount=plan.price,
                     due_date=due_date,
-                    status='pending'  # Padronizado para seu banco
+                    status='pending'
                 )
                 db.session.add(new_invoice)
-                count += 1
-            
-    db.session.commit()
-    return f"Sucesso! {count} faturas geradas. {errors} alunos sem plano ignorados."
+                
+                # 2. IMPORTANTE: Commitamos agora para gerar o ID da fatura
+                try:
+                    db.session.commit()
+                    
+                    # 3. Agora enviamos para a fila do Celery com os dados REAIS
+                    generate_and_send_invoice_pix.delay(
+                        invoice_id=new_invoice.id, # ID real do banco
+                        amount=float(plan.price),  # Preço real do plano
+                        student_name=student.full_name, # Use 'name' ou 'username' conforme seu Model
+                        student_email=student.email,
+                        month_ref=month_ref
+                    )
+                    count += 1
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"Erro ao salvar fatura do aluno {student.id}: {e}")
+                    errors += 1
+
+    return f"Sucesso! {count} faturas geradas e enviadas para fila de e-mail. {errors} problemas encontrados."
 
 
 
