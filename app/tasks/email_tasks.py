@@ -44,7 +44,7 @@ def send_async_invoice(subject, recipient, template, data):
         
 
 @celery.task(name='tasks.send_welcome_email')
-def send_welcome_email(student_email=None, student_name=None, plan_name=None, class_name=None, schedule=None, enrollment_date=None, student_id=None):
+def send_welcome_email(student_email=None, student_name=None, plan_name=None, class_name=None, schedule=None, enrollment_date=None, student_id=None, duration=None):
     # Usamos o current_app dentro do context para o Jinja2 e o Mail funcionarem
     with current_app.app_context():
         try:

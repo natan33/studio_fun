@@ -113,24 +113,14 @@ class AcademyService:
         Converte o day_of_week (0-6) e o start_time 
         em uma string amigável para o e-mail.
         """
-        # Mapeamento do padrão 0-6 para nomes em português
-        dias_semana = {
-            '0': 'Segunda-feira',
-            '1': 'Terça-feira',
-            '2': 'Quarta-feira',
-            '3': 'Quinta-feira',
-            '4': 'Sexta-feira',
-            '5': 'Sábado',
-            '6': 'Domingo'
-        }
 
         # Obtém o nome do dia através da string salva no banco
-        dia_nome = dias_semana.get(str(class_schedule.day_of_week), "Dia a definir")
+        dias_nome = class_schedule.day_of_week or  "Dia a definir"
         
         # Formata o horário (objeto db.Time)
         horario = class_schedule.start_time.strftime('%H:%M') if class_schedule.start_time else "Horário a definir"
         
-        return f"{dia_nome} às {horario}"
+        return f"{dias_nome} às {horario}"
 
     def create_enrollment(self):
         if not self.form or not self.form.validate_on_submit():
@@ -162,29 +152,31 @@ class AcademyService:
             db.session.add(new_enrollment)
             db.session.commit()
 
-            already_sent = WelcomeEmailLog.query.filter_by(student_id=self.form.student_id.data).first()
+            #already_sent = WelcomeEmailLog.query.filter_by(student_id=self.form.student_id.data).first()
             student_id = self.form.student_id.data
         
-            if not already_sent:
-                student = Student.query.get(self.form.student_id.data)
-                plan = Plan.query.get(self.form.plan_id.data)
-                classroom = ClassSchedule.query.get(self.form.schedule_id.data)
+            #if not already_sent:
+            st = Student.query.get(self.form.student_id.data)
+            student = Student.query.get(self.form.student_id.data)
+            plan = Plan.query.get(st.plan_id)
+            classroom = ClassSchedule.query.get(self.form.schedule_id.data)
+            
+            # Formata os horários da turma
+            schedule_str = self.format_class_schedule(classroom) 
+            
+            # Chama a Task do Celery passando os dados necessários
+            from app.tasks.email_tasks import send_welcome_email
+            send_welcome_email.delay(
+                student_email=student.email,
+                student_name=student.full_name,
+                plan_name=plan.name,
                 
-                # Formata os horários da turma
-                schedule_str = self.format_class_schedule(classroom) 
-                
-                # Chama a Task do Celery passando os dados necessários
-                from app.tasks.email_tasks import send_welcome_email
-                send_welcome_email.delay(
-                    student_email=student.email,
-                    student_name=student.full_name,
-                    plan_name=plan.name,
-                    duration=plan.duration_months,
-                    class_name=classroom.name,
-                    schedule=schedule_str,
-                    enrollment_date=datetime.now().strftime('%d/%m/%Y'),
-                    student_id=student_id,
-                )
+                class_name=new_enrollment.schedule.activity_ref.name,
+                schedule=schedule_str,
+                enrollment_date=datetime.now().strftime('%d/%m/%Y'),
+                student_id=student_id,
+                duration=plan.duration_months,
+            )
                 
                 # 3. Registra que o e-mail foi enviado
 
