@@ -583,7 +583,7 @@ function enviarWhatsappComPix(nome, telefone, vencimento, valor, chave) {
         '',
         `Para sua comodidade, utilize a chave PIX (Copia e Cola) abaixo para o pagamento:`,
         '',
-        `${chave}`,
+        `71992793799`,
         '',
         `_Caso o pagamento já tenha sido identificado, por favor, desconsidere este aviso._`,
         '',

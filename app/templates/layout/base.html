@@ -145,7 +145,9 @@
                 data-bs-target="#sidebarOffcanvas">
                 <i class="fas fa-bars text-white"></i>
             </button>
-            <span class="navbar-brand mb-0 h1 fs-6 text-white">Studio Fun</span>
+            <a href="{{ url_for('main.index') }}" class="navbar-brand mb-0 h1 fs-6 text-white text-decoration-none">
+                Studio Fun
+            </a>
         </div>
     </nav>
 
@@ -153,11 +155,13 @@
         style="background-color: #073b32 !important;">
 
         <div class="sidebar-header d-flex align-items-center justify-content-between p-3">
-            <div class="text-center w-100">
-                <img src="{{ url_for('static', filename='img/logo_fun.jpg') }}" class="sidebar-logo shadow-sm mb-2">
-                <h5 class="mb-0 fw-bold text-white">Studio Fun</h5>
-                <small style="color: var(--studio-neon); font-size: 0.7rem;">MOVIMENTO CURA</small>
-            </div>
+            <a href="{{ url_for('main.index') }}" class="text-decoration-none text-center w-100">
+                <div class="text-center w-100">
+                    <img src="{{ url_for('static', filename='img/logo_fun.jpg') }}" class="sidebar-logo shadow-sm mb-2">
+                    <h5 class="mb-0 fw-bold text-white">Studio Fun</h5>
+                    <small style="color: var(--studio-neon); font-size: 0.7rem;">MOVIMENTO CURA</small>
+                </div>
+            </a>
             <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
                 data-bs-target="#sidebarOffcanvas"></button>
         </div>

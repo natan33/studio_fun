@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
 
-from sqlalchemy import extract, func
+from sqlalchemy import and_, extract, func
 from app.models.pages.students import Student
 from app.models.pages.finance import Expense, Invoice, Plan
 from app import db
@@ -211,16 +211,24 @@ class FinanceService:
     def get_dashboard_data():
         try:
             today = datetime.now()
-            # 1. Total Recebido (Dinheiro que já entrou no caixa este mês)
+            current_month = today.month
+            current_year = today.year
+            # 1. Total Recebido
             total_income = db.session.query(func.sum(Invoice.amount)).filter(
-                Invoice.status == 'paid',
-                extract('month', Invoice.payment_date) == today.month
+                and_(
+                    Invoice.status == 'paid',
+                    extract('month', Invoice.paid_at) == current_month,
+                    extract('year', Invoice.paid_at) == current_year # SEMPRE filtre o ano também!
+                )
             ).scalar() or 0
 
-            # 2. Total Pago (Dinheiro que já saiu do caixa este mês)
+            # 2. Total Pago
             total_expense = db.session.query(func.sum(Expense.amount)).filter(
-                Expense.status == 'paid',
-                extract('month', Expense.payment_date) == today.month
+                and_(
+                    Expense.status == 'paid',
+                    extract('month', Expense.payment_date) == current_month,
+                    extract('year', Expense.payment_date) == current_year
+                )
             ).scalar() or 0
 
             data = {
@@ -229,6 +237,7 @@ class FinanceService:
                 "profit": float(total_income - total_expense),
                 "margin": round(((total_income - total_expense) / total_income * 100), 2) if total_income > 0 else 0
             }
+            print(data)
 
             return ApiResponse.success(data=data)
         except Exception as e:

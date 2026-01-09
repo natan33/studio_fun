@@ -72,7 +72,7 @@ def generate_and_send_invoice_pix(self, invoice_id, amount, student_name, studen
 
         # URL para o e-mail (Importante: usar URL completa se possível ou CID)
         # Para simplificar, usaremos o link do servidor
-        qr_code_url = f"http://localhost:5000/static/downloads/pix/{filename}"
+        qr_code_url = f"https://studiofun.vps6928.panel.icontainer.net/static/downloads/pix/{filename}"
 
         # 3. Enviar E-mail (Reutilizando a lógica profissional)
         with current_app.app_context():

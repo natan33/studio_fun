@@ -74,7 +74,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total de Alunos</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_students }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="card-total-students">...</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -90,7 +90,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Matrículas Ativas</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_enrollments }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="card-total-enrollments">...</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-file-signature fa-2x text-gray-300"></i>
@@ -106,7 +106,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Turmas Config.</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ data.cards.total_schedules }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="card-total-schedules">...</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
@@ -127,7 +127,7 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table id="table-occupancy" class="table table-hover align-middle mb-0 w-100">
                             <thead class="bg-light text-muted small">
                                 <tr>
                                     <th class="ps-4">Atividade / Dia</th>
@@ -137,41 +137,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {# Ordenamos por porcentagem e pegamos as 5 primeiras #}
-                                {% for item in data.occupancy|sort(attribute='pct', reverse=True) %}
-                                    {% if loop.index <= 5 %}
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="fw-bold text-dark">{{ item.label }}</div>
-                                        </td>
-                                        <td><span class="badge bg-light text-dark border">{{ item.time }}</span></td>
-                                        <td style="min-width: 200px;">
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress flex-grow-1" style="height: 8px;">
-                                                    <div class="progress-bar {% if item.pct >= 90 %}bg-danger{% elif item.pct >= 70 %}bg-warning{% else %}bg-success{% endif %}" 
-                                                         role="progressbar" 
-                                                         style="width: {{ item.pct }}%;">
-                                                    </div>
-                                                </div>
-                                                <span class="ms-3 small fw-bold">{{ item.pct }}%</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-center pe-4">
-                                            <span class="fw-bold">{{ item.current }}</span><span class="text-muted">/{{ item.max }}</span>
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                {% else %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">Nenhuma turma para exibir.</td>
-                                </tr>
-                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <div class="card-footer bg-white text-center">
-                    <a href="{{ url_for('main.page_schedules') }}" class="small text-primary text-decoration-none">Ver todas as turmas <i class="fas fa-arrow-right ms-1"></i></a>
+                    <a href="{{ url_for('main.page_schedules') }}" class="small text-primary text-decoration-none">Ver
+                        todas as turmas <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
             </div>
         </div>

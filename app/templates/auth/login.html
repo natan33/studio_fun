@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Studio Fun</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
             --primary-dark: #0d4d3f;
@@ -15,8 +16,8 @@
         }
 
         body {
-            background: linear-gradient(rgba(13, 77, 63, 0.85), rgba(13, 77, 63, 0.95)), 
-                        url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop');
+            background: linear-gradient(rgba(13, 77, 63, 0.85), rgba(13, 77, 63, 0.95)),
+                url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -36,7 +37,8 @@
 
         .logo-box {
             text-align: center;
-            margin-bottom: -60px; /* Sobrepõe levemente o card */
+            margin-bottom: -60px;
+            /* Sobrepõe levemente o card */
             position: relative;
             z-index: 10;
         }
@@ -47,7 +49,7 @@
             object-fit: cover;
             border-radius: 50%;
             border: 5px solid white;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             background-color: white;
         }
 
@@ -55,8 +57,9 @@
             border: none;
             border-radius: 25px;
             background: rgba(255, 255, 255, 1);
-            padding: 70px 40px 40px 40px; /* Padding superior maior para compensar a logo */
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            padding: 70px 40px 40px 40px;
+            /* Padding superior maior para compensar a logo */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
         .form-label {
@@ -67,7 +70,8 @@
         }
 
         .input-group {
-            margin-bottom: 25px; /* Mais espaço entre blocos de input */
+            margin-bottom: 25px;
+            /* Mais espaço entre blocos de input */
         }
 
         .form-control {
@@ -106,72 +110,87 @@
         .btn-login:hover {
             background-color: #08332a;
             transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
             color: var(--accent-neon);
         }
 
         .footer-text {
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.85rem;
             margin-top: 25px;
             text-align: center;
         }
     </style>
 </head>
+
 <body>
 
-<div class="login-wrapper">
-    <div class="logo-box">
-        <img src="{{ url_for('static', filename='img/logo_fun.jpg') }}" alt="Studio Fun">
-    </div>
-
-    <div class="card login-card">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold" style="color: var(--primary-dark);">Bem-vindo!</h2>
-            <p class="text-muted small">Acesse o painel do Studio Fun</p>
+    <div class="login-wrapper">
+        <div class="logo-box">
+            <img src="{{ url_for('static', filename='img/logo_fun.jpg') }}" alt="Studio Fun">
         </div>
 
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
+        <div class="card login-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm mb-4" role="alert"
+                style="border-radius: 12px;">
+                <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <div class="text-center mb-5">
+                <h2 class="fw-bold" style="color: var(--primary-dark);">Bem-vindo!</h2>
+                <p class="text-muted small">Acesse o painel do Studio Fun</p>
+            </div>
 
-            <div class="mb-4">
-                <label class="form-label fw-bold">E-MAIL DO USUÁRIO</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                    {{ form.email(class="form-control", placeholder="exemplo@fun.com") }}
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">E-MAIL DO USUÁRIO</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        {{ form.email(class="form-control", placeholder="exemplo@fun.com") }}
+                    </div>
                 </div>
-            </div>
 
-            <div class="mb-4">
-                <label class="form-label fw-bold">SENHA DE ACESSO</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                    {{ form.password(class="form-control", placeholder="••••••••") }}
+                <div class="mb-4">
+                    <label class="form-label fw-bold">SENHA DE ACESSO</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        {{ form.password(class="form-control", placeholder="••••••••") }}
+                    </div>
                 </div>
-            </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="form-check">
-                    {{ form.remember_me(class="form-check-input") }}
-                    <label class="form-check-label small text-muted" for="remember_me">Manter conectado</label>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        {{ form.remember_me(class="form-check-input") }}
+                        <label class="form-check-label small text-muted" for="remember_me">Manter conectado</label>
+                    </div>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none fw-bold"
+                        style="color: var(--primary-dark);">Esqueci a senha</a>
                 </div>
-                <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none fw-bold" style="color: var(--primary-dark);">Esqueci a senha</a>
-            </div>
 
-            <div class="d-grid">
-                <button type="submit" class="btn btn-login">
-                    Entrar no Sistema <i class="fas fa-arrow-right ms-2"></i>
-                </button>
-            </div>
-        </form>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-login">
+                        Entrar no Sistema <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="footer-text">
+            <p><strong>Studio Fun</strong> - Movimento Cura!<br>
+                <small>© 2025 Gleide Vallentino</small>
+            </p>
+        </div>
     </div>
 
-    <div class="footer-text">
-        <p><strong>Studio Fun</strong> - Movimento Cura!<br>
-        <small>© 2025 Gleide Vallentino</small></p>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

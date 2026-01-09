@@ -1,44 +1,48 @@
-
 (function () {
     let lastPingTime = 0;
-    const PING_INTERVAL = 30000; // 30 segundos entre pings
+    const PING_INTERVAL = 60000; // Alterado para 1 minuto (mais leve para VPS)
 
     function sendActivePing() {
         const now = Date.now();
 
-        // Verifica se o intervalo de 30s já passou para não sobrecarregar o servidor
-        if (now - lastPingTime >= PING_INTERVAL) {
-            lastPingTime = now;
-
-            fetch('/api/config/ping', {})
-                .then(response => {
-                    if (!response.ok) {
-                        // Se houver erro (sessão expirou), não resetamos o lastPingTime 
-                        // para evitar loops de erro infinitos
-                        console.warn("Sessão pode ter expirado.");
-                    }
-                })
-                .then(response => response.json())
-                .then(res => {
-                    if (res.code === 'SUCCESS') {
-                        // console.log("Usuário ativo"); // Opcional para debug
-                    } else if (res.code === 'UNAUTHORIZED') {
-                        // Se o seu ApiResponse retornar erro de sessão, você pode redirecionar
-                        window.location.href = '/login?msg=sessao_expirada';
-                    }
-                })
-                .catch(err => console.error("Erro no Ping:", err));
+        // 1. Trava imediata: se já tentamos um ping recentemente, ignora QUALQUER evento
+        if (now - lastPingTime < PING_INTERVAL) {
+            return;
         }
+
+        // 2. Atualizamos o lastPingTime ANTES do fetch. 
+        // Isso impede que novos eventos disparem pings enquanto este ainda está processando.
+        lastPingTime = now;
+
+        fetch('/api/config/ping')
+            .then(response => {
+                // Se o servidor retornar 401 (Não autorizado), manda para o login
+                if (response.status === 401) {
+                    window.location.href = '/login?msg=sessao_expirada';
+                    return;
+                }
+                if (!response.ok) throw new Error('HTTP_ERROR');
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.code === 'UNAUTHORIZED') {
+                    window.location.href = '/login?msg=sessao_expirada';
+                }
+                // Se deu SUCCESS, o lastPingTime já está atualizado lá em cima
+            })
+            .catch(() => {
+                // Se deu erro de rede, resetamos o lastPingTime para tentar novamente 
+                // mas só daqui a 10 segundos, para não sobrecarregar
+                lastPingTime = Date.now() - (PING_INTERVAL - 10000);
+            });
     }
 
-    // Lista de eventos que caracterizam movimentação/interação real
     const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
 
-    // Registra os eventos no documento
     activityEvents.forEach(event => {
+        // Usamos { passive: true } para não afetar a performance do scroll no celular
         document.addEventListener(event, sendActivePing, { passive: true });
     });
 
-    // Opcional: Dispara um ping logo que a página carrega para registrar o início do acesso
     window.addEventListener('load', sendActivePing);
 })();

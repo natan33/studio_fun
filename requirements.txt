@@ -42,4 +42,4 @@ Flask-SocketIO
 Flask-APScheduler
 qrcode
 crcmod
-pillow
+gunicorn

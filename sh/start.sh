@@ -2,44 +2,58 @@
 # Script de inicialização do ambiente e serviços
 
 # verifica se o arquivo requirements.txt foi modificado recentemente
-REQUIREMENTS_FILE="requirements.txt"
-if [ -f "$REQUIREMENTS_FILE" ]; then
-    MODIFIED_TIME=$(stat -c %Y "$REQUIREMENTS_FILE")
-    CURRENT_TIME=$(date +%s)
-    TIME_DIFF=$((CURRENT_TIME - MODIFIED_TIME))
-    # se o arquivo foi modificado nos últimos 10 minutos (600 segundos), reinstala as dependências
-    if [ $TIME_DIFF -lt 600 ]; then
-        echo "Reinstalando dependências do pip..."
-        # ativa o ambiente virtual
-        if [ -z "$VIRTUAL_ENV" ]; then
-            echo "Ativando ambiente virtual..."
-            source ./venv/bin/activate
-        else
-            echo "Ambiente virtual já está ativado: $VIRTUAL_ENV"
-        fi
-        pip install -r requirements.txt
+
+# Cores para o terminal
+CYAN='\033[0;36m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+# Caminhos
+VENV_PATH="./venv"
+SOCKET_DIR="ideal_notify"
+PORT=5000
+
+start() {
+    # execução do Celery Worker para processamento de tarefas em segundo plano
+    echo "Iniciando Celery Worker..."
+    celery -A celery_worker.celery worker -P prefork --max-tasks-per-child=1000 --loglevel=info --detach
+
+    # execução do Celery Beat para agendamento de tarefas periódicas
+    echo "Iniciando Celery Beat..."
+    celery -A celery_worker.celery beat -l info --detach
+
+
+    echo "Iniciando servidor gunicorn."
+    flask run
+}
+
+stop() {
+    echo -e "${RED}🛑 Parando serviço na porta $PORT...${NC}"
+
+    pkill -f celery
+    
+    if fuser -k $PORT/tcp > /dev/null 2>&1; then
+        echo -e "${GREEN}✅ Processos encerrados.${NC}"
+    else
+        echo -e "⚠️ Nenhum processo ativo encontrado."
     fi
-fi
+}
 
 
-# inicia o servidor Redis
-echo "Iniciando Redis..."
-sudo service redis-server start
-
-# inicia o servidor Flask
-echo "Iniciando servidor gunicorn."
-export FLASK_APP=app
-gunicorn --bind :5000 app:app
-
-# remove as pastas __pycache__ para evitar conflitos
-echo "Removendo pastas __pycache__..."
-find . -type d -name "__pycache__" -exec rm -rf {} +
-
-
-# execução do Celery Worker para processamento de tarefas em segundo plano
-echo "Iniciando Celery Worker..."
-celery -A celery_worker.celery worker -P prefork --max-tasks-per-child=1000 --loglevel=info --detach
-
-# execução do Celery Beat para agendamento de tarefas periódicas
-echo "Iniciando Celery Beat..."
-celery -A celery_worker.celery beat -l info --detach
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        sleep 2
+        start
+        ;;
+    *)
+        echo "Uso: $0 {start|stop|restart|}"
+        exit 1
+esac

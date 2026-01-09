@@ -16,25 +16,25 @@ class ServiceAutentication:
         self.form = forms
 
     def autentication(self):
-        # Verifica se o formulário foi submetido e é válido (CSRF incluso aqui)
-        if self.form and self.form.validate_on_submit():
-            user = User.query.filter_by(email=self.form.email.data).first()
+        if self.request.method == 'POST': # Verifica se é uma tentativa de envio
+            if self.form.validate_on_submit():
+                user = User.query.filter_by(email=self.form.email.data).first()
 
-            if user and user.check_password(self.form.password.data):
-                # Flask-Login + Redis Session
-                login_user(user, remember=self.form.remember_me.data)
+                if user and user.check_password(self.form.password.data):
+                    login_user(user, remember=self.form.remember_me.data)
+                    logger.info(f"Usuário {user.email} logado via sessão.")
+                    next_page = self.request.args.get('next')
+                    return redirect(next_page or url_for('main.index'))
                 
-                logger.info(f"Usuário {user.email} logado via sessão.")
-                
-                # Busca o parâmetro 'next' para redirecionar após o login
-                next_page = self.request.args.get('next')
-                return redirect(next_page or url_for('main.index'))
-            
-            # Caso falhe a senha ou usuário
-            logger.warning(f"Falha de login para o email: {self.form.email.data}")
-            flash('E-mail ou senha inválidos.', 'danger')
+                # Caso falhe a senha ou usuário
+                logger.warning(f"Falha de login para o email: {self.form.email.data}")
+                flash('E-mail ou senha inválidos. Tente novamente.', 'danger')
+            else:
+                # Caso o formulário falhe na validação (ex: e-mail vazio)
+                if self.form.errors:
+                    flash('Por favor, preencha os campos corretamente.', 'warning')
         
-        return None # Se não validou ou é GET, retorna None
+        return None
 
     def logout(self):
         logout_user()
