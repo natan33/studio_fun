@@ -124,7 +124,8 @@ class AcademyService:
 
     def create_enrollment(self):
         if not self.form or not self.form.validate_on_submit():
-            return ApiResponse.error(message="Dados inválidos.", data=self.form.errors)
+            print(self.form.errors)
+            return ApiResponse.error(message="Dados inválidos.", errors=self.form.errors)
 
         try:
             # 1. Verificar se a turma existe e tem vaga

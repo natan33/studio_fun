@@ -324,6 +324,37 @@ function loadAvailableMonths() {
         });
 };
 
+
+function initScheduleSelect() {
+    $('#selectClass').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Escolha uma aula da grade...',
+        allowClear: true,
+        width: '100%',
+        ajax: {
+            url: '/api/schedules/list-options',
+            dataType: 'json',
+            delay: 250, // Aguarda 250ms após digitar para não sobrecarregar o servidor
+            data: function (params) {
+                return {
+                    q: params.term // Envia o que o usuário digitou no parâmetro 'q'
+                };
+            },
+            processResults: function (result) {
+                // Mapeia o seu "display_text" para o formato que o Select2 entende (id e text)
+                return {
+                    results: result.data.map(item => ({
+                        id: item.id,
+                        text: item.display_text
+                    }))
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0 // Permite clicar e ver a lista sem digitar nada
+    });
+}
+
 /* ==========================================================
    DOM READY
 ========================================================== */
@@ -376,7 +407,12 @@ $(document).ready(function () {
         loadMonthlyReport();
     });
 
+    initScheduleSelect();
+
 });
+
+
+
 
 
 /* ==========================================================

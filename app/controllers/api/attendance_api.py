@@ -152,3 +152,12 @@ def get_available_months():
         })
         
     return ApiResponse.success(data=meses)
+
+
+from sqlalchemy import or_
+
+@api.route('/api/schedules/list-options')
+@login_required
+def list_schedule_options():
+
+    return AttendanceService.list_schedule_options(request=request)

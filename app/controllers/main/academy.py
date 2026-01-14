@@ -4,6 +4,7 @@ from flask_login import login_required
 from sqlalchemy import or_
 from app.controllers.forms.academy_forms import ActivityForm, ClassScheduleForm, EnrollmentForm
 from app.models.pages.academy import Activity, ClassSchedule
+from app.models.pages.students import Student
 from app.services.AcademyService import AcademyService
 from app.services.ActivitiesService import ActivitiesService
 from . import main # ou seu blueprint específico
@@ -58,9 +59,34 @@ def page_enrollments():
     service = AcademyService(form=form, request=request)
     
     # Carregamento dinâmico dos SelectFields
+
+    query = ClassSchedule.query.join(Activity).filter(
+        or_(
+            ClassSchedule.is_active == True,
+            ClassSchedule.is_active == None
+        )
+    )
+
+    # Se o usuário digitar algo, filtra pelo nome da atividade ou dia da semana
+
+    # Ordenação conforme sua necessidade
+    schedules = query.order_by(
+        ClassSchedule.day_of_week, 
+        ClassSchedule.start_time
+    ).all()
     
-    form.student_id.choices = [] # Começa vazio para o AJAX preencher
-    form.schedule_id.choices = []
+    # Formata para o Select2
+    results = [
+        {
+            "id": sch.id, 
+            "text": f"{sch.activity_ref.name} - {sch.day_of_week} às {sch.start_time.strftime('%H:%M')}"
+        } 
+        for sch in schedules
+    ]
+    
+    # Use colchetes para transformar a tupla em uma lista de um item só
+    form.student_id.choices = [(0, 'Selecione um aluno')] + [(str(s.id), s.full_name) for s in Student.query.all()]# Começa vazio para o AJAX preencher
+    form.schedule_id.choices = [(0, 'Selecione uma Turma/horário')] + [(sch.id,f"{sch.activity_ref.name} - {sch.day_of_week} às {sch.start_time.strftime('%H:%M')}") for sch in schedules]
 
     if request.method == 'POST':
         return service.create_enrollment()

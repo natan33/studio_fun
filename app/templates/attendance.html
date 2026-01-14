@@ -65,13 +65,7 @@
             <div class="col-md-5">
                 <label class="form-label small fw-bold text-muted">Selecione a Turma/Horário</label>
                 <select id="selectClass" class="form-select select2">
-                    <option value="">Escolha uma aula da grade...</option>
-                    {% for schedule in schedules %}
-                    <option value="{{ schedule.id }}">
-                        {{ schedule.activity_ref.name }} - {{ schedule.day_of_week }} às {{
-                        schedule.start_time.strftime('%H:%M') }}
-                    </option>
-                    {% endfor %}
+                    <option value="">Carregando turmas...</option>
                 </select>
             </div>
             <div class="col-md-3">

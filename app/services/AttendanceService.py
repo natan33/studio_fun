@@ -7,6 +7,7 @@ from calendar import monthrange
 from datetime import datetime
 
 from app.models.pages.students import Student
+from app.utils.api_response import ApiResponse
 
 class AttendanceService:
     @staticmethod
@@ -226,3 +227,37 @@ class AttendanceService:
         except Exception as e:
             print(f"Erro ao contar presenças: {e}")
             return {'presentes': 0, 'faltas': 0, 'pendentes': 0, 'total': 0}
+        
+    @staticmethod
+    def list_schedule_options(request=None):
+        from app.models.pages.academy import ClassSchedule, Activity
+
+        # 1. Pegamos o termo de busca (se houver)
+        search = request.args.get('q', '')
+
+        # 2. Montamos a BASE da query (Apenas a receita, sem .all() ainda)
+        # Filtramos apenas Atividades com status 'Ativo'
+        query = ClassSchedule.query.join(Activity).filter(Activity.status == 'Ativo')
+
+        # 3. Adicionamos o filtro de busca DINAMICAMENTE
+        if search:
+            query = query.filter(
+                or_(
+                    Activity.name.ilike(f'%{search}%'),
+                    ClassSchedule.day_of_week.ilike(f'%{search}%')
+                )
+            )
+
+        # 4. AGORA SIM executamos a query no banco de dados
+        schedules = query.all()
+        
+        # 5. Formatamos o resultado para o Select do Frontend
+        options = [
+            {
+                "id": s.id,
+                "display_text": f"{s.activity_ref.name} - {s.day_of_week} às {s.start_time.strftime('%H:%M')}"
+            } 
+            for s in schedules
+        ]
+        
+        return ApiResponse.success(data=options)
