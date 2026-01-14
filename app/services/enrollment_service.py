@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from app import db
 from app.models import *
 from app.utils.api_response import ApiResponse
@@ -119,3 +120,52 @@ class EnrollmentService:
         except Exception as e:
             db.session.rollback()
             return False, str(e)
+        
+    def get_students(self):
+        search_term = self.request.args.get('q', '')  # O Select2 envia o termo de busca no parâmetro 'q'
+    
+        # Filtra os alunos no banco de dados (exemplo com SQLAlchemy)
+        students = Student.query.filter(Student.full_name.ilike(f'%{search_term}%')).limit(10).all()
+        
+        # Formata para o padrão que o Select2 entende
+        results = [{"id": s.id, "text": s.full_name} for s in students]
+        # Usando seu ApiResponse (exemplo de estrutura)
+        return ApiResponse.success(data=results)
+    
+    def get_schedules(self):
+        search = self.request.args.get('q', '')
+    
+        # Busca as turmas filtrando pelo nome da atividade (activity_ref)
+        # Ajuste o filtro de acordo com seu banco (ex: Schedule.activity_ref.has...)
+        query = ClassSchedule.query.join(Activity).filter(
+            or_(
+                ClassSchedule.is_active == True,
+                ClassSchedule.is_active == None
+            )
+        )
+
+        # Se o usuário digitar algo, filtra pelo nome da atividade ou dia da semana
+        if search:
+            query = query.filter(
+                or_(
+                    Activity.name.ilike(f'%{search}%'),
+                    ClassSchedule.day_of_week.ilike(f'%{search}%')
+                )
+            )
+
+        # Ordenação conforme sua necessidade
+        schedules = query.order_by(
+            ClassSchedule.day_of_week, 
+            ClassSchedule.start_time
+        ).all()
+        
+        # Formata para o Select2
+        results = [
+            {
+                "id": sch.id, 
+                "text": f"{sch.activity_ref.name} - {sch.day_of_week} às {sch.start_time.strftime('%H:%M')}"
+            } 
+            for sch in schedules
+        ]
+        
+        return ApiResponse.success(data=results)

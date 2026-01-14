@@ -1,8 +1,9 @@
 from app import db
 from datetime import datetime, timezone
+from app.models.extensions import AuditMixin
 
 
-class Setting(db.Model):
+class Setting(db.Model, AuditMixin):
     __tablename__ = 'settings'
     __table_args__ = {"schema": "core"}
 
@@ -28,7 +29,7 @@ class Setting(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-class AuditLog(db.Model):
+class AuditLog(db.Model, AuditMixin):
     __tablename__ = 'audit_logs'
     __table_args__ = {"schema": "core"}
 
@@ -58,7 +59,7 @@ class AuditLog(db.Model):
         db.session.commit()
 
 
-class WelcomeEmailLog(db.Model):
+class WelcomeEmailLog(db.Model, AuditMixin):
     __tablename__ = 'welcome_email_logs'
     __table_args__ = {"schema": "core"}
     id = db.Column(db.Integer, primary_key=True)

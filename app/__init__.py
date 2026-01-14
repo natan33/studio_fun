@@ -103,4 +103,13 @@ def create_app(config_name: str):
         app.permanent_session_lifetime = timedelta(minutes=15)
         session.modified = True
 
+    from sqlalchemy import event
+    @event.listens_for(db.Session, "before_flush")
+    def receive_before_flush(session, flush_context, instances):
+        # Percorre tudo que é novo ou foi alterado
+        for obj in list(session.new) + list(session.dirty):
+            # Se o objeto tiver o método update_audit (que vem do Mixin)
+            if hasattr(obj, 'update_audit'):
+                obj.update_audit() #
+
     return app

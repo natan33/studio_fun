@@ -1,4 +1,6 @@
 
+from flask import request
+from app.models.pages.students import Student
 from app.services.enrollment_service import EnrollmentService
 from app.utils.api_response import ApiResponse
 from . import api
@@ -45,3 +47,18 @@ def delete_enrollment(id):
     except Exception as e:
         print(f"Erro na rota de exclusão: {e}")
         return ApiResponse.error(message="Erro interno ao processar a exclusão.")
+    
+
+@api.route('/api/enrollments/get-students', methods=['GET'])
+@login_required
+def get_enrollments_students():
+
+    service = EnrollmentService(request=request)
+    return service.get_students()
+
+@api.route('/api/enrollments/get-schedules',methods=['GET'])
+@login_required
+def get_enrollments_schedules():
+
+    service = EnrollmentService(request=request)
+    return service.get_schedules()

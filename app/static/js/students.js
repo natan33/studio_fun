@@ -1,49 +1,115 @@
-// Aguarda o DOM carregar para registrar os eventos de filtro
-document.addEventListener('DOMContentLoaded', function () {
-    const filterName = document.getElementById('filterName');
-    const filterStatus = document.getElementById('filterStatus');
 
-    if (filterName && filterStatus) {
-        filterName.addEventListener('keyup', filterTable);
-        filterStatus.addEventListener('change', filterTable);
-    }
+let table;
+
+$(document).ready(function () {
+    table = $('#studentsTable').DataTable({
+        // Busca os dados da sua rota API
+        ajax: {
+            url: '/api/students/list', // Ajuste para sua rota real
+            dataSrc: 'data' // Onde os dados estão no seu JSON (ex: { "data": [...] })
+        },
+        columns: [
+            {
+                data: 'id',
+                className: 'px-4 fw-bold text-dark'
+            },
+            {
+                data: 'full_name',
+                className: 'px-4 fw-bold text-dark'
+            },
+            {
+                data: 'is_active',
+                render: function (data, type, row) {
+                    const checked = data ? 'checked' : '';
+                    const label = data ? 'Ativo' : 'Inativo';
+                    // Criamos o HTML do Switch dinamicamente
+                    return `
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" ${checked}
+                                onclick="handleStatusToggle('${row.id}', '${row.full_name}', this)">
+                            <label class="form-check-label small text-muted">${label}</label>
+                        </div>`;
+                }
+            },
+            {
+                data: 'birth_date',
+                render: function (data) {
+                    if (!data) return '-';
+                    // Formata data ISO (YYYY-MM-DD) para BR (DD/MM/YYYY)
+                    const d = new Date(data);
+                    return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                }
+            },
+            {
+                data: 'created_at',
+                render: function (data) {
+                    if (!data) return '-';
+                    // Formata data ISO (YYYY-MM-DD) para BR (DD/MM/YYYY)
+                    const d = new Date(data);
+                    return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                }
+            },
+            {
+                data: null, // Coluna de ações não vem do banco
+                className: 'text-center',
+                render: function (data, type, row) {
+                    return `
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-info border-0" title="Ver Detalhes"
+                                onclick="loadStudentDetails('${row.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning border-0" title="Editar"
+                                onclick="editStudent('${row.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger border-0" title="Excluir"
+                                onclick="deleteStudent('${row.id}', '${row.full_name}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>`;
+                }
+            }
+        ],
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json' },
+        pageLength: 25,
+        dom: 'rtip',
+        responsive: true
+    });
+
+    // Filtros customizados continuam funcionando
+    $('#filterName').on('keyup', function () { table.search(this.value).draw(); });
+    $('#filterStatus').on('change', function () {
+        const val = $(this).val();
+        if (val === 'active') table.column(1).search('Ativo').draw();
+        else if (val === 'inactive') table.column(1).search('Inativo').draw();
+        else table.column(1).search('').draw();
+    });
+
+    refreshStudentCards();
+
 });
 
-function filterTable() {
-    const nameQuery = document.getElementById('filterName').value.toLowerCase().trim();
-    const statusQuery = document.getElementById('filterStatus').value;
-    const rows = document.querySelectorAll('#studentTableBody tr');
 
-    rows.forEach(row => {
-        // Pula a linha se for a de "Nenhum aluno encontrado"
-        if (row.cells.length < 3) return;
+async function refreshStudentCards() {
+    try {
+        const response = await fetch('/api/students/cards');
+        const result = await response.json();
 
-        // 1. Captura o Nome (está dentro da primeira célula, geralmente num <div> ou <td> direto)
-        const studentName = row.cells[0].innerText.toLowerCase();
+        // Verificando se o ApiResponse retornou sucesso (baseado no seu código)
+        if (result.code === 'SUCCESS') {
+            const stats = result.data;
 
-        // 2. Captura o Status (buscamos o texto do Label ou o estado do Checkbox)
-        // Como você usou um Switch, vamos olhar o texto do label ou a propriedade 'checked'
-        const isChecked = row.querySelector('.form-check-input').checked;
-        const statusLabel = isChecked ? 'active' : 'inactive';
-
-        // Lógica de matches
-        const matchesName = studentName.includes(nameQuery);
-
-        let matchesStatus = false;
-        if (statusQuery === 'all') {
-            matchesStatus = true;
-        } else {
-            matchesStatus = (statusQuery === statusLabel);
+            // Atualiza os IDs que criamos no HTML
+            $('#stat-total').text(stats.total);
+            $('#stat-active').text(stats.active);
+            $('#stat-inactive').text(stats.inactive);
         }
-
-        // Aplica o filtro visual
-        if (matchesName && matchesStatus) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+    } catch (error) {
+        console.error("Erro ao carregar cards:", error);
+    }
 }
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -269,6 +335,14 @@ async function handleStatusToggle(id, name, element) {
             if (data.code === 'SUCCESS') {
                 element.checked = isChecked; // Agora sim aplica a mudança
                 Swal.fire('Sucesso!', data.message, 'success');
+
+                refreshStudentCards();
+
+                // 3. Atualiza a tabela via AJAX (sem recarregar a página)
+                // O parâmetro 'false' mantém a paginação atual do usuário
+                if (typeof table !== 'undefined') {
+                    table.ajax.reload(null, false);
+                }
             } else {
                 Swal.fire('Erro', data.message, 'error');
             }
@@ -491,7 +565,13 @@ async function deleteStudent(id, name) {
 
             if (data.status === 'success') {
                 Swal.fire('Excluído!', data.message, 'success').then(() => {
-                    location.reload(); // Recarrega para atualizar a tabela e os cards
+                    refreshStudentCards();
+
+                    // 3. Atualiza a tabela via AJAX (sem recarregar a página)
+                    // O parâmetro 'false' mantém a paginação atual do usuário
+                    if (typeof table !== 'undefined') {
+                        table.ajax.reload(null, false);
+                    } // Recarrega para atualizar a tabela e os cards
                 });
             } else {
                 Swal.fire('Erro', data.message, 'error');

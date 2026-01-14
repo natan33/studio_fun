@@ -13,11 +13,12 @@ def page_students():
     service = StudentService(forms=form, request=request)
 
     plans = Plan.query.all()
-    form.plan_id.choices = [(p.id, f"{p.name} (R$ {p.price})") for p in plans]
+    # Opção A: Usando listas (Mais recomendado)
+    form.plan_id.choices = [(0, 'Selecione um plano')] + [(p.id, f"{p.name} (R$ {p.price})") for p in plans]
     
     if request.method == 'POST':
         return service.create_student()
     
     # Buscamos os alunos para a listagem inicial
-    students = service.list_all(as_dict=False) # Certifique-se que o list_all() retorna a lista pura ou use Student.query...
-    return render_template('page-students.html', form=form, students=students)
+ # Certifique-se que o list_all() retorna a lista pura ou use Student.query...
+    return render_template('page-students.html', form=form)

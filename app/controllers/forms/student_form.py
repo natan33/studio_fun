@@ -10,7 +10,7 @@ class StudentForm(FlaskForm):
         Length(min=3, max=100)
     ])
     cpf = StringField('CPF', validators=[
-        DataRequired(message="O CPF é obrigatório."),
+        Optional(),
         Length(min=11, max=14)
     ])
     email = StringField('E-mail', validators=[

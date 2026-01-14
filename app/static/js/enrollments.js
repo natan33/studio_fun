@@ -1,7 +1,9 @@
-// static/js/enrollments.js
+
+
+let table;
 
 document.addEventListener('DOMContentLoaded', function () {
-    reloadEnrollmentsTable();
+    initTable();
 
     // Sempre que filtrar, voltamos para a página 1 e renderizamos
     const filters = ['filterStudent', 'filterActivity', 'filterDate'];
@@ -35,7 +37,7 @@ document.getElementById('enrollmentForm')?.addEventListener('submit', async func
 
         if (response.ok) { // Verifica se o status é 200-299
             // Verificamos se dentro do JSON o status é 'success'
-            if (result.status === 'success' || result.success === true) {
+            if (result.code === 'SUCCESS') {
                 Swal.fire({
                     icon: 'success',
                     title: 'Sucesso!',
@@ -45,7 +47,8 @@ document.getElementById('enrollmentForm')?.addEventListener('submit', async func
                 });
 
                 // RECARREGA OS DADOS (Tabela + Cards + Atividades)
-                reloadEnrollmentsTable();
+                $('#modalEnrollment').modal('hide');
+                table.ajax.reload();
             } else {
                 // Se o servidor mandou 200 mas com mensagem de erro interna
                 Swal.fire({
@@ -68,131 +71,111 @@ document.getElementById('enrollmentForm')?.addEventListener('submit', async func
     }
 });
 
-let allEnrollments = [];
-let currentPage = 1;
-const rowsPerPage = 25;
-
-async function reloadEnrollmentsTable() {
-    try {
-        const response = await fetch('/api/enrollments');
-        const result = await response.json();
-
-        if (result.code === 'SUCCESS') {
-            allEnrollments = result.data;
-            updateCardsFromData(allEnrollments);
-            updateActivitySelectOptions();
-            renderTable(); // Chama a função que desenha a tabela com paginação
+$('#modalEnrollment').on('shown.bs.modal', function () {
+    $('.select2-modal').select2({
+        theme: 'bootstrap-5', // Define o tema correto
+        width: '100%',
+        dropdownParent: $('#modalEnrollment'),
+        placeholder: 'Selecionar Aluno',
+        allowClear: true,
+        ajax: {
+            url: '/api/enrollments/get-students',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (response) {
+                // Aqui garantimos que pegamos a lista de resultados do seu ApiResponse
+                return { results: response.data };
+            }
         }
-    } catch (error) { console.error("Erro ao carregar:", error); }
-}
-
-function renderTable() {
-    const tbody = document.getElementById('enrollmentsBody');
-    if (!tbody) return;
-
-    // Captura valores dos filtros
-    const studentQuery = document.getElementById('filterStudent').value.toLowerCase();
-    const activityQuery = document.getElementById('filterActivity').value;
-    const dateQuery = document.getElementById('filterDate').value;
-
-    // 1. FILTRAGEM DOS DADOS
-    let filtered = allEnrollments.filter(enr => {
-        const matchesStudent = enr.student_name.toLowerCase().includes(studentQuery);
-        const matchesActivity = activityQuery === "" || enr.activity === activityQuery;
-
-        // LÓGICA CORRIGIDA: 
-        // Se dateQuery estiver vazio, matchesDate é sempre true (não filtra).
-        // Se não estiver vazio, ele compara as datas.
-        const rowDateISO = formatToISO(enr.enrolled_at);
-        const matchesDate = (dateQuery === "" || dateQuery === null) || rowDateISO === dateQuery;
-
-        return matchesStudent && matchesActivity && matchesDate;
     });
 
-    // 2. LÓGICA DE PAGINAÇÃO
-    const totalItems = filtered.length;
-    const totalPages = Math.ceil(totalItems / rowsPerPage);
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    const paginatedItems = filtered.slice(start, end);
+    $('.select2-schedule').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        dropdownParent: $('#modalEnrollment'),
+        placeholder: 'Pesquisar Atividade, Dia ou Horário...',
+        allowClear: true,
+        ajax: {
+            url: '/api/enrollments/get-schedules',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term }; // Envia o termo de busca
+            },
+            processResults: function (response) {
+                return { results: response.data };
+            },
+            cache: true
+        }
+    });
 
-    // 3. RENDERIZAÇÃO DA TABELA (Seus botões de volta aqui!)
-    tbody.innerHTML = '';
+});
 
-    if (paginatedItems.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>';
-    }
-
-    paginatedItems.forEach(enr => {
-        const isTrancado = enr.status === 'Trancado';
-        const statusBadge = isTrancado
-            ? '<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Trancado</span>'
-            : '<span class="badge bg-success-subtle text-success border border-success-subtle">Ativo</span>';
-
-        const row = `
-            <tr data-student="${enr.student_name.toLowerCase()}" data-activity="${enr.activity}">
-                <td>
+function initTable() {
+    table = $('#enrollmentsTable').DataTable({
+        ajax: {
+            url: '/api/enrollments',
+            dataSrc: 'data' // Onde os dados estão no seu ApiResponse
+        },
+        columns: [
+            { 
+                data: 'student_name',
+                render: (data, type, row) => `
                     <div class="d-flex align-items-center">
                         <div class="avatar-sm me-3 bg-light rounded-circle text-center" style="width:35px; height:35px; line-height:35px;">
-                            ${enr.student_name.substring(0, 2).toUpperCase()}
+                            ${data.substring(0, 2).toUpperCase()}
                         </div>
-                        <span class="fw-bold">${enr.student_name}</span>
-                    </div>
-                </td>
-                <td>
+                        <span class="fw-bold">${data}</span>
+                    </div>`
+            },
+            { 
+                data: null,
+                render: (data, type, row) => `
                     <div class="small">
-                        <span class="d-block fw-bold text-primary">${enr.activity}</span>
-                        <span class="text-muted">${enr.day} às ${enr.time}</span>
-                    </div>
-                </td>
-                <td class="text-muted small">${enr.enrolled_at}</td>
-                <td>${statusBadge}</td>
-                <td class="text-center">
-                    <button class="btn btn-sm ${isTrancado ? 'btn-outline-success' : 'btn-outline-warning'} border-0 me-1" 
-                            onclick="toggleEnrollmentStatus('${enr.id}', '${enr.status}')"
-                            title="${isTrancado ? 'Destrancar' : 'Trancar'}">
-                        <i class="fas ${isTrancado ? 'fa-unlock' : 'fa-lock'}"></i>
+                        <span class="d-block fw-bold text-primary">${row.activity}</span>
+                        <span class="text-muted">${row.day} às ${row.time}</span>
+                    </div>`
+            },
+            { data: 'enrolled_at', className: 'small text-muted' },
+            { 
+                data: 'status',
+                render: (data) => data === 'Trancado' 
+                    ? '<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Trancado</span>'
+                    : '<span class="badge bg-success-subtle text-success border border-success-subtle">Ativo</span>'
+            },
+            {
+                data: null,
+                orderable: false,
+                className: 'text-center',
+                render: (data, type, row) => `
+                    <button class="btn btn-sm ${row.status === 'Ativo' ? 'btn-outline-warning' : 'btn-outline-success'} border-0" 
+                            onclick="toggleEnrollmentStatus('${row.id}', '${row.status}')">
+                        <i class="fas ${row.status === 'Ativo' ? 'fa-lock' : 'fa-unlock'}"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteEnrollment('${enr.id}')">
+                    <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteEnrollment('${row.id}')">
                         <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            </tr>`;
-        tbody.insertAdjacentHTML('beforeend', row);
+                    </button>`
+            }
+        ],
+        drawCallback: function(settings) {
+            // Atualiza os cards sempre que a tabela redesenhar (filtro/paginação)
+            const api = this.api();
+            updateCardsFromData(api.rows({search:'applied'}).data().toArray());
+        },
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json' },
+        pageLength: 25,
+        dom: 'rtip' // Remove o search pattern padrão se você usar filtros customizados
     });
 
-    renderPaginationControls(totalPages, totalItems);
+    // Filtros Customizados
+    $('#filterStudent').on('input', function() { table.column(0).search(this.value).draw(); });
+    $('#filterActivity').on('change', function() { table.column(1).search(this.value).draw(); });
+    // Para data, precisaremos de um filtro customizado se o formato for BR
 }
 
-// Auxiliar para converter data BR (DD/MM/YYYY) para ISO (YYYY-MM-DD)
-function formatToISO(dateStr) {
-    if (!dateStr || !dateStr.includes('/')) return dateStr;
-    const [day, month, year] = dateStr.split('/');
-    return `${year}-${month}-${day}`;
-}
-
-function renderPaginationControls(totalPages, totalItems) {
-    const container = document.getElementById('paginationButtons');
-    const info = document.getElementById('paginationInfo');
-    if (!container || !info) return;
-
-    info.innerText = `Mostrando ${totalItems > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a ${Math.min(currentPage * rowsPerPage, totalItems)} de ${totalItems}`;
-
-    container.innerHTML = '';
-    if (totalPages <= 1) return;
-
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.className = `btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-secondary border-0'}`;
-        btn.innerText = i;
-        btn.onclick = () => {
-            currentPage = i;
-            renderTable();
-            window.scrollTo(0, 0); // Sobe para o topo ao mudar de página
-        };
-        container.appendChild(btn);
-    }
-}
 
 /**
  * Atualiza os contadores dos cards no topo da página
@@ -237,7 +220,7 @@ async function toggleEnrollmentStatus(id, currentStatus) {
 
             if (result.code === 'SUCCESS') {
                 Swal.fire({ icon: 'success', title: result.message, timer: 1500, showConfirmButton: false });
-                reloadEnrollmentsTable(); // Recarrega tabela e cards automaticamente
+                table.ajax.reload(null, false); // Recarrega tabela e cards automaticamente
             }
         } catch (error) {
             Swal.fire('Erro', 'Falha na comunicação.', 'error');
@@ -293,7 +276,7 @@ async function deleteEnrollment(id) {
 
             const result = await response.json();
 
-            if (result.code === 'SUCCESS' || result.status === 'success') {
+            if (result.code === 'SUCCESS') {
                 Swal.fire({
                     icon: 'success',
                     title: 'Excluído!',
@@ -303,7 +286,7 @@ async function deleteEnrollment(id) {
                 });
 
                 // RECARREGA A TABELA E OS CARDS
-                reloadEnrollmentsTable();
+                table.ajax.reload(null, false);
             } else {
                 Swal.fire('Erro', result.message || 'Não foi possível excluir.', 'error');
             }

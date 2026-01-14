@@ -3,6 +3,27 @@ from app.services.student_service import StudentService
 from . import api
 from flask_login import login_required
 
+
+
+@api.route('/api/students/list')
+@login_required
+def list_students_api():
+
+    service = StudentService()
+
+    return service.list_student()
+
+
+@api.route('/api/students/cards')
+@login_required
+def cards_students_api():
+    service = StudentService()
+
+    return service.get_cards_students_api()    
+
+    
+    
+
 @api.route('/api/student/<int:id>', methods=['GET'])
 @login_required
 def get_student(id):

@@ -10,7 +10,6 @@ fi
 COMMIT_MESSAGE=$1
 
 # Adiciona todos os arquivos
-git add .
 
 # Faz o commit com a mensagem
 flask db migrate -m "$COMMIT_MESSAGE"

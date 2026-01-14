@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from app import db
+from app.models.extensions import AuditMixin
 
-
-class Modality(db.Model):
+class Modality(db.Model, AuditMixin):
     __tablename__ = 'modalities'
     __table_args__ = {"schema": "academy"}
 
@@ -29,7 +29,7 @@ class Modality(db.Model):
         db.session.commit()
 
 
-class ClassSchedule(db.Model):
+class ClassSchedule(db.Model, AuditMixin):
     __tablename__ = 'class_schedule'
     __table_args__ = {"schema": "academy"}
 
@@ -61,7 +61,7 @@ class ClassSchedule(db.Model):
         db.session.commit()
 
 
-class Attendance(db.Model):
+class Attendance(db.Model, AuditMixin):
     __tablename__ = 'attendance'
     __table_args__ = {"schema": "academy"}
 
@@ -103,7 +103,7 @@ class Attendance(db.Model):
         return cls.query.get(attendance_id)
 
 
-class AttendanceSummary(db.Model):
+class AttendanceSummary(db.Model, AuditMixin):
     """Tabela de performance para relatórios rápidos sem precisar contar milhões de linhas"""
     __tablename__ = 'attendance_summary'
     __table_args__ = {"schema": "academy"}
@@ -132,7 +132,7 @@ class AttendanceSummary(db.Model):
         db.session.commit()
 
 
-class ClassStudent(db.Model):
+class ClassStudent(db.Model, AuditMixin):
     __tablename__ = 'class_students'
     __table_args__ = {"schema": "academy"}
 
@@ -160,7 +160,7 @@ class ClassStudent(db.Model):
         db.session.commit()
 
 
-class Activity(db.Model):
+class Activity(db.Model, AuditMixin):
     __tablename__ = 'activities'
     __table_args__ = {"schema": "academy"}
     
@@ -199,7 +199,7 @@ class Activity(db.Model):
             }
 
 
-class Enrollment(db.Model):
+class Enrollment(db.Model, AuditMixin):
     __tablename__ = 'enrollments'
     __table_args__ = {"schema": "academy"}
 

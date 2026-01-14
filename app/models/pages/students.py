@@ -1,13 +1,14 @@
 from app import db
 from datetime import datetime, timedelta, timezone
+from app.models.extensions import AuditMixin
 
-class Student(db.Model):
+class Student(db.Model, AuditMixin):
     __tablename__ = 'students'
     __table_args__ = {"schema": "students"}
 
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(100), nullable=False)
-    cpf = db.Column(db.String(14), unique=True, index=True)
+    cpf = db.Column(db.String(14), unique=True, nullable=True, index=True)
     email = db.Column(db.String(120), unique=True)
     phone = db.Column(db.String(20))
     birth_date = db.Column(db.Date)
@@ -76,15 +77,17 @@ class Student(db.Model):
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'full_name': self.full_name,
-            'cpf': self.cpf,
-            'birth_date': self.birth_date.strftime('%Y-%m-%d') if self.birth_date else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
+        'id': self.id,
+        'full_name': self.full_name,
+        'cpf': self.cpf,
+        'is_active': self.is_active, # Importante para o switch!
+        'birth_date': self.birth_date.strftime('%Y-%m-%d') if self.birth_date else None,
+        'birth_date_br': self.birth_date.strftime('%d/%m/%Y') if self.birth_date else '-',
+        'created_at': self.created_at.isoformat() if self.created_at else None
+    }
 
 
-class StudentHealth(db.Model):
+class StudentHealth(db.Model, AuditMixin):
     __tablename__ = 'student_health_data'
     __table_args__ = {"schema": "students"}
 

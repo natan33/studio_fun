@@ -10,7 +10,7 @@
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
                     <h6 class="text-muted small fw-bold text-uppercase mb-1">Total de Alunos</h6>
-                    <h2 class="fw-bold mb-0 text-dark">{{ students|length }}</h2>
+                    <h2 class="fw-bold mb-0 text-dark" id="stat-total">0</h2>
                 </div>
                 <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
                     <i class="fas fa-users fa-2x"></i>
@@ -23,9 +23,7 @@
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
                     <h6 class="text-muted small fw-bold text-uppercase mb-1">Matrículas Ativas</h6>
-                    <h2 class="fw-bold mb-0 text-success">
-                        {{ students|selectattr('is_active', 'equalto', True)|list|length }}
-                    </h2>
+                    <h2 class="fw-bold mb-0 text-success" id="stat-active">0</h2>
                 </div>
                 <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
                     <i class="fas fa-user-check fa-2x"></i>
@@ -38,9 +36,7 @@
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
                     <h6 class="text-muted small fw-bold text-uppercase mb-1">Matrículas Inativas</h6>
-                    <h2 class="fw-bold mb-0 text-danger">
-                        {{ students|selectattr('is_active', 'equalto', False)|list|length }}
-                    </h2>
+                    <h2 class="fw-bold mb-0 text-danger" id="stat-inactive">0</h2>
                 </div>
                 <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
                     <i class="fas fa-user-times fa-2x"></i>
@@ -85,55 +81,19 @@
         <div class="card shadow-sm border-0">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table id="studentsTable" class="table table-hover align-middle mb-0" style="width:100%">
                         <thead class="bg-light text-muted small fw-bold">
                             <tr>
+                                <th class="px-4 py-3">ID</th>
                                 <th class="px-4 py-3">NOME</th>
                                 <th class="py-3">STATUS</th>
                                 <th class="py-3">NASCIMENTO</th>
+                                <th class="py-3">DATA CADASTRO</th>
+
                                 <th class="py-3 text-center">AÇÕES</th>
                             </tr>
                         </thead>
-                        <tbody id="studentTableBody">
-                            {% for student in students %}
-                            <tr>
-                                <td class="px-4 fw-bold text-dark">{{ student.full_name }}</td>
-                                <td>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" role="switch" {% if
-                                            student.is_active %}checked{% endif %}
-                                            onclick="handleStatusToggle('{{ student.id }}', '{{ student.full_name }}', this)">
-                                        <label class="form-check-label small text-muted">
-                                            {{ 'Ativo' if student.is_active else 'Inativo' }}
-                                        </label>
-                                    </div>
-                                </td>
-                                <td>{{ student.birth_date.strftime('%d/%m/%Y') if student.birth_date else '-' }}</td>
-                                <td class="text-center">
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info border-0" title="Ver Detalhes"
-                                            onclick="loadStudentDetails('{{ student.id }}')">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-warning border-0" title="Editar"
-                                            onclick="editStudent('{{ student.id }}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger border-0" title="Excluir"
-                                            onclick="deleteStudent('{{ student.id }}', '{{ student.full_name }}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">
-                                    <i class="fas fa-user-friends fs-1 mb-3 d-block opacity-25"></i>
-                                    Nenhum aluno cadastrado.
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody>
                         </tbody>
                     </table>
                 </div>
@@ -211,10 +171,12 @@
                         <div class="col-md-12">
                             <label class="form-label small fw-bold text-muted">Vincular Plano de Mensalidade</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-file-invoice-dollar text-success"></i></span>
+                                <span class="input-group-text bg-light"><i
+                                        class="fas fa-file-invoice-dollar text-success"></i></span>
                                 {{ form.plan_id(class="form-select border-success-subtle") }}
                             </div>
-                            <div class="form-text small">As faturas automáticas serão geradas com base neste plano.</div>
+                            <div class="form-text small">As faturas automáticas serão geradas com base neste plano.
+                            </div>
                         </div>
 
                         <div class="col-12 mt-4">
@@ -265,7 +227,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="detalhesConteudo">
-                </div>
+            </div>
         </div>
     </div>
 </div>

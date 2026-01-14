@@ -1,8 +1,9 @@
 
 from app import db
 from datetime import datetime, timezone
+from app.models.extensions import AuditMixin
 
-class Plan(db.Model):
+class Plan(db.Model, AuditMixin):
     __tablename__ = 'plans'
     __table_args__ = {"schema": "finance"}
 
@@ -65,7 +66,7 @@ class Plan(db.Model):
             db.session.rollback()
             return f"Erro: {str(e)}"
 
-class Invoice(db.Model):
+class Invoice(db.Model, AuditMixin):
     __tablename__ = 'invoices'
     __table_args__ = {"schema": "finance"}
 
@@ -122,7 +123,7 @@ class Invoice(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-class Expense(db.Model):
+class Expense(db.Model, AuditMixin):
     __tablename__ = 'expenses'
     __table_args__ = {"schema": "finance"}
     

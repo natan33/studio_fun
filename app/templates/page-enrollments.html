@@ -4,6 +4,21 @@
 {% block page_title %}Gestão de Matrículas{% endblock %}
 
 {% block content %}
+<style>
+    /* Garante que o select ocupe toda a largura do modal */
+    .select2-container--bootstrap-5 {
+        width: 100% !important;
+    }
+
+    /* Ajuste para o campo de seleção não ficar 'quebrado' visualmente */
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        /* Altura padrão do Bootstrap */
+        display: flex !important;
+        align-items: center !important;
+
+    }
+</style>
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="card shadow-sm border-0">
@@ -68,24 +83,23 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle" id="tableEnrollments">
-                <thead class="table-light">
+            <table id="enrollmentsTable" class="table table-hover">
+                <thead>
                     <tr>
                         <th>Aluno</th>
-                        <th>Turma</th>
+                        <th>Atividade / Horário</th>
                         <th>Data Matrícula</th>
                         <th>Status</th>
                         <th class="text-center">Ações</th>
                     </tr>
                 </thead>
-                <tbody id="enrollmentsBody">
-                </tbody>
+                <tbody id="enrollmentsBody"></tbody>
             </table>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalEnrollment" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEnrollment" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-primary text-white">
@@ -97,11 +111,11 @@
                     {{ form.csrf_token }}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Selecionar Aluno</label>
-                        {{ form.student_id(class="form-select select2-modal") }}
+                        {{ form.student_id(class="form-select select2-modal", id='select-alunos') }}
                     </div>
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-uppercase text-muted">Turma / Horário</label>
-                        {{ form.schedule_id(class="form-select") }}
+                        {{ form.schedule_id(class="form-select select2-schedule") }}
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary py-3 fw-bold shadow-sm">

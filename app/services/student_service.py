@@ -12,6 +12,37 @@ class StudentService:
         self.request = request
         self.form = forms
 
+
+
+    def list_student(self):
+            try:
+
+                # Buscamos todas as matrículas, incluindo as relações para evitar múltiplas queries
+                student = Student.query.all()
+                
+                data = [ e.to_dict() for e in student]
+                
+                # Ordenar pelas mais recentes primeiro
+                data.sort(key=lambda x: x['id'], reverse=True)
+    
+                return ApiResponse.success(data=data)
+            except Exception as e:
+                print(f"Erro no Service: {e}")
+                return ApiResponse.error(message=str(e))
+
+    def get_cards_students_api(self):
+        students = Student.query.all()
+    
+        # Cálculos dos contadores
+        total = len(students)
+        active = len([s for s in students if s.is_active])
+        inactive = total - active
+        
+        return ApiResponse.success(data={
+                "total": total,
+                "active": active,
+                "inactive": inactive
+            })
     
     def _ajuste_weigth(self,weight=None):
         if 'kg'.lower() in weight:
@@ -50,7 +81,7 @@ class StudentService:
 
                     # Atualiza Dados Pessoais e Endereço
                     student.full_name = self.form.full_name.data
-                    student.cpf = self.clean_mask(self.form.cpf.data)
+                    student.cpf = self.clean_mask(self.form.cpf.data) if self.form.cpf.data else None
                     student.email = self.form.email.data
                     student.phone = self.clean_mask(self.form.phone.data)
                     student.birth_date = self.form.birth_date.data
@@ -81,7 +112,7 @@ class StudentService:
                 # 1. Instância do Aluno (Dados Principais, Endereço e Contato)
                 new_student = Student(
                     full_name=self.form.full_name.data,
-                    cpf=self.clean_mask(self.form.cpf.data), # LIMPA AQUI
+                    cpf=self.clean_mask(self.form.cpf.data) if self.form.cpf.data else None, # LIMPA AQUI
         
                     email=self.form.email.data,
                     phone=self.clean_mask(self.form.phone.data),

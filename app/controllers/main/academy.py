@@ -58,24 +58,9 @@ def page_enrollments():
     service = AcademyService(form=form, request=request)
     
     # Carregamento dinâmico dos SelectFields
-    from app.models.pages.academy import ClassSchedule
-    from app.models.pages.students import Student
-    form.student_id.choices = [(s.id, s.full_name) for s in Student.query.order_by('full_name').all()]
     
-    schedules =  ClassSchedule.query.join(Activity).filter(
-                or_(
-                    ClassSchedule.is_active == True,
-                    ClassSchedule.is_active == None
-                )
-            ).order_by(
-                ClassSchedule.day_of_week, 
-                ClassSchedule.start_time
-            ).all()
-    
-    form.schedule_id.choices = [
-        (sch.id, f"{sch.activity_ref.name} - {sch.day_of_week} às {sch.start_time.strftime('%H:%M')}") 
-        for sch in schedules
-    ]
+    form.student_id.choices = [] # Começa vazio para o AJAX preencher
+    form.schedule_id.choices = []
 
     if request.method == 'POST':
         return service.create_enrollment()
