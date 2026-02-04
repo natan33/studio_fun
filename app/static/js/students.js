@@ -563,7 +563,7 @@ async function deleteStudent(id, name) {
 
             const data = await response.json();
 
-            if (data.status === 'success') {
+            if (data.code === 'SUCCESS') {
                 Swal.fire('Excluído!', data.message, 'success').then(() => {
                     refreshStudentCards();
 

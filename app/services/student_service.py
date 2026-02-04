@@ -1,5 +1,6 @@
 from app import db
 from sqlalchemy.exc import IntegrityError
+from app.models.pages.academy import Enrollment
 from app.models.pages.students import Student, StudentHealth
 from app.utils.api_response import ApiResponse # Supondo que o caminho seja esse
 import logging
@@ -32,6 +33,8 @@ class StudentService:
 
     def get_cards_students_api(self):
         students = Student.query.all()
+
+        total_ativos = Enrollment.query.filter_by(status='Ativo').count()
     
         # Cálculos dos contadores
         total = len(students)
@@ -40,7 +43,7 @@ class StudentService:
         
         return ApiResponse.success(data={
                 "total": total,
-                "active": active,
+                "active": total_ativos,
                 "inactive": inactive
             })
     
